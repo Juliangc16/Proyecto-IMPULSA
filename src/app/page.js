@@ -98,7 +98,7 @@ export default function Home() {
 
       {/* Marca de agua / Metadatos */}
       <div className="hidden pointer-events-none opacity-0 select-none" data-creator="julian-magick">
-        Impulsa 2026 - Todos los derechos reservados.
+        IMPULSA LAB 2026 - Todos los derechos reservados.
       </div>
 
       {/* CABECERA FIJA CON FONDO BLANCO SÓLIDO */}
@@ -107,7 +107,7 @@ export default function Home() {
         style={{ backgroundColor: "#ffffff" }}
       >
         {/* ESPACIADOR INVISIBLE DE SEGURIDAD (Empuja el contenido hacia abajo sin que se note visualmente, garantizando que el "Bienvenidos" nunca quede oculto detrás de la cabecera fija) */}
-        <div className="w-full h-8 md:h-12 bg-white" aria-hidden="true"></div>
+        <div className="w-full h-8 md:h-5 bg-white" aria-hidden="true"></div>
 
         {/* LOGOS Y MENÚ */}
         <header 
@@ -214,22 +214,30 @@ export default function Home() {
         </section>
       </main>
 
+      <div className="px-6 py-8 text-center">   
+      <h4 className="font-montserrat font-bold text-base text-[#020201] mb-2">
+         Quienes somos
+      </h4>
+      <p>
+        <strong>IMPULSA LAB</strong> es el laboratorio de emprendimiento universitario diseñado para trasformar el talento, creatividad y el potencial de los estudiantes en emprendimientos sostenibles y de alto impacto. Somos un espacio de inovacion, aprendizaje y colaboracion donde atraves de una metologia estructura, mentorias especializadas, brindamos a los estudiantes las herramientas necesarias para diseñar, validar, lanzar y escalar sus proyectos emprendedores. En IMPULSA LAB creemos que cada idea tiene el potencial de generar valor, impacto social y desarrollo economico cuando recibe el apoyo adecuado.
+      </p>
+      </div>      
       {/* FOOTER */}
       <footer className="mt-auto border-t border-stone-200/50 bg-white">
         <div className="px-6 py-8 text-center">
-          <h4 className="font-montserrat font-bold text-base text-[#020201] mb-2">
+          <h5 className="font-montserrat font-bold text-base text-[#020201] mb-2">
             Contáctenos
-          </h4>
+          </h5>
           <p className="text-stone-600 text-sm leading-relaxed font-inter max-w-md mx-auto">
             Escríbenos a{" "}
-            <a href="mailto:contacto@impulsalab.edu.co" className="text-[#003893] font-medium hover:underline">
-              contacto@impulsalab.edu.co
+            <a href="mailto:impulsalab@universitariadecolombia.edu.co" className="text-[#003893] font-medium hover:underline">
+              impulsalab@universitariadecolombia.edu.co
             </a>{" "}
             o comunícate con nosotros a través de nuestras redes sociales.
           </p>
         </div>
         <div className="py-4 text-center text-xs text-stone-400 font-inter border-t border-stone-200/50">
-          © 2026 Impulsa Lab — Institución Universitaria de Colombia
+          © 2026 IMPULSA LAB — Institución Universitaria de Colombia
         </div>
       </footer>
     </div>
