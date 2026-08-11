@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 
 const URL_CUADRO_AMARILLO = "/que-clase-de-emprendedor-soy";
-const URL_CUADRO_AZUL = "/mi-idea-comienza-aqui";
+const URL_CUADRO_AZUL = "https://forms.cloud.microsoft/r/zz5CaG15Kq";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -15,9 +15,9 @@ export default function Home() {
   ];
 
   const enlacesNavegacion = [
-    { label: "¿Quiénes somos?", href: "/quienes-somos" },
-    { label: "¿Qué hacemos?", href: "/que-hacemos" },
-    { label: "¿Cuál es nuestro propósito?", href: "/nuestro-proposito" }
+    { label: "¿Quiénes somos?",href: "#Quienes_somos"},
+    { label: "¿Qué hacemos?", href: "#Que_hacemos" },
+    { label: "¿Cuál es nuestro propósito?", href: "#nuestro_proposito" }
   ];
 
   const tarjetas = [
@@ -214,20 +214,50 @@ export default function Home() {
         </section>
       </main>
 
-      <div className="px-6 py-8 text-center">   
-      <h4 className="font-montserrat font-bold text-base text-[#020201] mb-2">
-         Quienes somos
-      </h4>
-      <p>
-        <strong>IMPULSA LAB</strong> es el laboratorio de emprendimiento universitario diseñado para trasformar el talento, creatividad y el potencial de los estudiantes en emprendimientos sostenibles y de alto impacto. Somos un espacio de inovacion, aprendizaje y colaboracion donde atraves de una metologia estructura, mentorias especializadas, brindamos a los estudiantes las herramientas necesarias para diseñar, validar, lanzar y escalar sus proyectos emprendedores. En IMPULSA LAB creemos que cada idea tiene el potencial de generar valor, impacto social y desarrollo economico cuando recibe el apoyo adecuado.
-      </p>
-      </div>      
+      <section id="Nuestros-emprendedore">
+          <div className="px-6 py-8 text-center ">
+          <h2 className="text-3xl md:text-4xl font-extrabold font-montserrat text-[#020201] tracking-tight leading-tight">Nuestros emprendedores</h2>
+          </div>
+      </section>
+<hr className="my-12 border-0 border-t border-black-300"/> 
+      <section id= "Quienes_somos">   
+        <div className="px-6 py-8 text-center">   
+          <h2 className="font-montserrat font-bold text-base text-[#020201] mb-2">
+              Quienes somos
+          </h2>
+          <p>
+            <strong>IMPULSA LAB</strong> es el laboratorio de emprendimiento universitario diseñado para trasformar el talento, creatividad y el potencial de los estudiantes en emprendimientos sostenibles y de alto impacto. Somos un espacio de inovacion, aprendizaje y colaboracion donde atraves de una metologia estructura, mentorias especializadas, brindamos a los estudiantes las herramientas necesarias para diseñar, validar, lanzar y escalar sus proyectos emprendedores. En IMPULSA LAB creemos que cada idea tiene el potencial de generar valor, impacto social y desarrollo economico cuando recibe el apoyo adecuado.
+          </p>
+      </div>   
+      </section> 
+<hr className="my-12 border-0 border-t border-black-300"/> 
+      <section id= "Que_hacemos">
+        <div className="PX-6 PY-8 text-center">
+          <h2 className="font-montserrat font-bold text-base text-[#020201] mb-2">
+            Que hacemos
+          </h2>
+          <p>
+            En <strong>IMPULSA LAB</strong> impulsamos el desarrollo de emprendedores desde la etapa de la idea hasta la consolidación de negocios reales, acompañamos a los estudiantes en todo su proceso emprendedor mediante programas de formación, talleres prácticos, mentorias perosonalizadas, vlaidacion de modelos de negocio, desarrollo de prototipos, conexión con aliados estratégicos y espacios de networking.
+          </p>
+        </div>
+      </section>
+<hr className="my-12 border-0 border-t border-black-300"/>     
+      <section id= "nuestro_proposito">
+          <div className="PX-6 PY-8 text-center">
+            <h2 className="font-montserrat font-bold text-base text-[#020201] mb-2">
+              ¿Cual es nuestro proposito?
+            </h2>
+            <p>
+              Nuestro proposito es formar una nueva generacion de emprendedores capaces de transformar sus ideas en empresas exitosas, innovadoras y sostenibles, buscamos despertar el espíritu emprendedor de los estudiantes, fortalecer sus competencias y proporcionales el acompañamiento necesario para que conviertan el conocimiento en oportunidades de negocio.
+            </p>
+          </div>
+      </section>
       {/* FOOTER */}
       <footer className="mt-auto border-t border-stone-200/50 bg-white">
         <div className="px-6 py-8 text-center">
-          <h5 className="font-montserrat font-bold text-base text-[#020201] mb-2">
+          <h4 className="font-montserrat font-bold text-base text-[#020201] mb-2">
             Contáctenos
-          </h5>
+          </h4>
           <p className="text-stone-600 text-sm leading-relaxed font-inter max-w-md mx-auto">
             Escríbenos a{" "}
             <a href="mailto:impulsalab@universitariadecolombia.edu.co" className="text-[#003893] font-medium hover:underline">
