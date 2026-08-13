@@ -214,12 +214,14 @@ export default function Home() {
         </section>
       </main>
 
-      <section id="Nuestros-emprendedore">
+      <section id="Nuestros-emprendedores">
           <div className="px-6 py-8 text-center ">
-          <h2 className="text-3xl md:text-4xl font-extrabold font-montserrat text-[#020201] tracking-tight leading-tight">Nuestros emprendedores</h2>
+          <h2 className="text-3xl md:text-4xl font-extrabold font-montserrat text-[#020201] tracking-tight leading-tight">
+            Nuestros emprendedores
+            </h2>
           </div>
       </section>
-<hr className="my-12 border-0 border-t border-black-300"/> 
+<hr className="w-[98%] mx-auto"/> 
       <section id= "Quienes_somos">   
         <div className="px-6 py-8 text-center">   
           <h2 className="font-montserrat font-bold text-base text-[#020201] mb-2">
@@ -230,7 +232,7 @@ export default function Home() {
           </p>
       </div>   
       </section> 
-<hr className="my-12 border-0 border-t border-black-300"/> 
+<hr className="w-[98%] mx-auto my-6"/> 
       <section id= "Que_hacemos">
         <div className="PX-6 PY-8 text-center">
           <h2 className="font-montserrat font-bold text-base text-[#020201] mb-2">
@@ -241,7 +243,7 @@ export default function Home() {
           </p>
         </div>
       </section>
-<hr className="my-12 border-0 border-t border-black-300"/>     
+<hr className="w-[98%] mx-auto my-6"/>     
       <section id= "nuestro_proposito">
           <div className="PX-6 PY-8 text-center">
             <h2 className="font-montserrat font-bold text-base text-[#020201] mb-2">
@@ -252,6 +254,7 @@ export default function Home() {
             </p>
           </div>
       </section>
+      <hr className="w-[98%] mx-auto my-6"/> 
       {/* FOOTER */}
       <footer className="mt-auto border-t border-stone-200/50 bg-white">
         <div className="px-6 py-8 text-center">
