@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createClient } from "@lib/server";
+import { createClient } from "../../../libreria/supabase/server";
 
 export async function registrarUsuario(prevState, formData) {
   const usuario = formData.get("usuario")?.toString().trim();
