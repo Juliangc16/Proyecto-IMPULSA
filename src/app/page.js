@@ -1,12 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@lib/client";
 
 const URL_CUADRO_AMARILLO = "/que-clase-de-emprendedor-soy";
 const URL_CUADRO_AZUL = "https://forms.cloud.microsoft/r/zz5CaG15Kq";
 
 export default function Home() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [frase, setFrase] = useState({ texto: "", autor: "" });
+  const [usuario, setUsuario] = useState(null);
+  const [cargandoSesion, setCargandoSesion] = useState(true);
+  const [avisoLogin, setAvisoLogin] = useState(false);
 
   const frasesMotivadoras = [
     { texto: "El único modo de hacer un gran trabajo es amar lo que haces.", autor: "Steve Jobs" },
@@ -61,6 +68,28 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    const supabase = createClient();
+
+    supabase.auth.getUser().then(({ data }) => {
+      setUsuario(data?.user ?? null);
+      setCargandoSesion(false);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_evento, session) => {
+      setUsuario(session?.user ?? null);
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  const manejarClicTarjeta = (evento) => {
+    if (!usuario) {
+      evento.preventDefault();
+      setAvisoLogin(true);
+    }
+  };
+
   const verificarDerechos = () => {
     const k1 = "magick";
     const k2 = "julian";
@@ -111,7 +140,7 @@ export default function Home() {
 
         {/* LOGOS Y MENÚ */}
         <header 
-          className="flex items-center justify-between px-8 py-3"
+          className="flex items-center justify-between gap-4 px-4 md:px-8 py-3 flex-wrap"
           style={{ backgroundColor: "#ffffff" }}
         >
           {/* CONTENEDOR DE LOGOS: Logo de la universidad ajustado 0.5 cm más hacia abajo (-10px) */}
@@ -147,8 +176,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* NAVEGACIÓN: Centrados verticalmente, separados del logo de Impulsa por un margen izquierdo de ~5 cm (ml-[5cm]), separacion de 5cm entre enlaces y espacio para login */}
-          <nav className="flex items-center justify-end gap-[5cm] font-montserrat text-sm ml-[5cm] mr-[5cm] my-auto">
+          {/* NAVEGACIÓN: ocupa el espacio disponible y centra los enlaces, sin desbordar el header */}
+          <nav className="flex items-center justify-center flex-wrap gap-4 md:gap-10 font-montserrat text-sm flex-1 min-w-0 my-auto">
             {enlacesNavegacion.map((item, index) => (
               <a
                 key={index}
@@ -159,6 +188,28 @@ export default function Home() {
               </a>
             ))}
           </nav>
+
+          {/* BOTÓN INICIAR SESIÓN */}
+          <Link
+            href="/login"
+            className="flex items-center gap-2 shrink-0 group"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="w-9 h-9 text-stone-400 group-hover:text-[#003893] transition-colors"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span className="text-sm font-medium text-stone-500 group-hover:text-[#003893] transition-colors whitespace-nowrap">
+              ¿Iniciar sesión?
+            </span>
+          </Link>
         </header>
 
         {/* FRANJAS APILADAS DE BORDE A BORDE */}
@@ -182,23 +233,24 @@ export default function Home() {
           </p>
         </section>
 
-        {/* TARJETAS LADO A LADO: Espaciado de ~5 cm entre cuadros */}
-        <section className="flex flex-row justify-center items-stretch gap-[5cm] w-full max-w-5xl mx-auto">
+        {/* TARJETAS: grid centrado, compacto y responsivo */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl mx-auto">
           {tarjetas.map((t, index) => (
             <a
               key={index}
               href={t.href}
-              className={`group ${t.cardBg} border-2 ${t.cardBorder} rounded-2xl p-4 flex flex-col items-center text-center transition-all duration-200 hover:scale-[1.02] hover:shadow-lg cursor-pointer max-w-[240px] w-full`}
+              onClick={manejarClicTarjeta}
+              className={`group ${t.cardBg} border-2 ${t.cardBorder} rounded-2xl p-5 flex flex-col items-center text-center transition-all duration-200 hover:scale-[1.03] hover:shadow-xl cursor-pointer`}
             >
-              <div className="w-[200px] h-[200px] shrink-0 flex items-center justify-center overflow-hidden rounded-xl bg-white/50">
+              <div className="w-full aspect-square max-w-[180px] shrink-0 flex items-center justify-center overflow-hidden rounded-xl bg-white/60">
                 <img
                   src={t.img}
                   alt={t.alt}
-                  className="w-[200px] h-[200px] object-contain transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
 
-              <div className="mt-4 flex flex-col items-center gap-2 w-full pt-2 border-t border-black/5">
+              <div className="mt-4 flex flex-col items-center gap-2 w-full pt-3 border-t border-black/5">
                 <span className={`${t.badgeBg} ${t.badgeText} px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider`}>
                   Destacado
                 </span>
@@ -273,6 +325,39 @@ export default function Home() {
           © 2026 IMPULSA LAB — Institución Universitaria de Colombia
         </div>
       </footer>
+
+      {/* AVISO: SESIÓN REQUERIDA */}
+      {avisoLogin && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center space-y-4">
+            <div className="mx-auto w-12 h-12 rounded-full bg-[#003893]/10 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 text-[#003893]">
+                <path fillRule="evenodd" d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <h3 className="font-montserrat font-bold text-lg text-[#020201]">
+              Debes iniciar sesión
+            </h3>
+            <p className="text-stone-600 text-sm leading-relaxed">
+              Para continuar necesitas iniciar sesión o crear una cuenta en IMPULSA LAB.
+            </p>
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                onClick={() => router.push("/login")}
+                className="w-full rounded-xl bg-[#003893] px-4 py-3 text-white font-semibold font-montserrat tracking-wide transition hover:bg-[#003893]/90"
+              >
+                Iniciar sesión
+              </button>
+              <button
+                onClick={() => setAvisoLogin(false)}
+                className="w-full rounded-xl px-4 py-3 text-stone-500 font-medium transition hover:text-[#020201]"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

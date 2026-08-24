@@ -27,9 +27,9 @@ export async function middleware(request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const rutasPublicas = ["/login", "/register"];
+  const rutasPublicas = ["/", "/login", "/register"];
   const esRutaPublica = rutasPublicas.some((ruta) =>
-    request.nextUrl.pathname.startsWith(ruta)
+    ruta === "/" ? request.nextUrl.pathname === "/" : request.nextUrl.pathname.startsWith(ruta)
   );
 
   if (!user && !esRutaPublica) {
@@ -38,7 +38,7 @@ export async function middleware(request) {
     return NextResponse.redirect(url);
   }
 
-  if (user && esRutaPublica) {
+  if (user && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register")) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);

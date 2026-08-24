@@ -11,7 +11,7 @@ export default function LoginPage() {
 
   return (
     <AuthShell
-      eyebrow="Sistema universitario"
+      eyebrow="IMPULSA lab"
       title="Iniciar sesión"
       footer={
         <>
