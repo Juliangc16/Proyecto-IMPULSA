@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@lib/client";
+import TarjetasCarousel from "@/components/home/TarjetasCarousel";
 
 const URL_CUADRO_AMARILLO = "/que-clase-de-emprendedor-soy";
 const URL_CUADRO_AZUL = "https://forms.cloud.microsoft/r/zz5CaG15Kq";
+const URL_CUADRO_ROJO = "/Noticias";
 
 export default function Home() {
   const router = useRouter();
@@ -49,6 +51,18 @@ export default function Home() {
       cardBorder: "border-[#003893]",
       title: "Mi idea comienza aquí",
       desc: "Da el primer paso para convertir tu idea en un proyecto real."
+    },
+    {
+      href: URL_CUADRO_ROJO,
+      img: "imagenes/noticias.jpeg",
+      alt: "Noticias IMPULSA LAB",
+      badgeBg: "bg-[#CE1126]",
+      badgeText: "text-white",
+      cardBg: "bg-[#CE1126]/10",
+      cardBorder: "border-[#CE1126]",
+      title: "Noticias",
+      desc: "Entérate de las novedades, logros y actividades de IMPULSA LAB.",
+      publica: true
     }
   ];
 
@@ -83,7 +97,8 @@ export default function Home() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  const manejarClicTarjeta = (evento) => {
+  const manejarClicTarjeta = (evento, tarjeta) => {
+    if (tarjeta?.publica) return;
     if (!usuario) {
       evento.preventDefault();
       setAvisoLogin(true);
@@ -233,36 +248,9 @@ export default function Home() {
           </p>
         </section>
 
-        {/* TARJETAS: grid centrado, compacto y responsivo */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl mx-auto">
-          {tarjetas.map((t, index) => (
-            <a
-              key={index}
-              href={t.href}
-              onClick={manejarClicTarjeta}
-              className={`group ${t.cardBg} border-2 ${t.cardBorder} rounded-2xl p-5 flex flex-col items-center text-center transition-all duration-200 hover:scale-[1.03] hover:shadow-xl cursor-pointer`}
-            >
-              <div className="w-full aspect-square max-w-[180px] shrink-0 flex items-center justify-center overflow-hidden rounded-xl bg-white/60">
-                <img
-                  src={t.img}
-                  alt={t.alt}
-                  className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
-
-              <div className="mt-4 flex flex-col items-center gap-2 w-full pt-3 border-t border-black/5">
-                <span className={`${t.badgeBg} ${t.badgeText} px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider`}>
-                  Destacado
-                </span>
-                <h3 className="font-montserrat font-bold text-sm text-[#020201] leading-tight">
-                  {t.title}
-                </h3>
-                <p className="text-stone-600 text-xs leading-relaxed font-inter">
-                  {t.desc}
-                </p>
-              </div>
-            </a>
-          ))}
+        {/* TARJETAS: carrusel (amarillo, azul, rojo/noticias) */}
+        <section className="w-full">
+          <TarjetasCarousel tarjetas={tarjetas} onClickTarjeta={manejarClicTarjeta} />
         </section>
       </main>
 

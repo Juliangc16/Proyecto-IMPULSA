@@ -27,7 +27,7 @@ export async function middleware(request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const rutasPublicas = ["/", "/login", "/register"];
+  const rutasPublicas = ["/", "/login", "/register", "/Noticias"];
   const esRutaPublica = rutasPublicas.some((ruta) =>
     ruta === "/" ? request.nextUrl.pathname === "/" : request.nextUrl.pathname.startsWith(ruta)
   );
