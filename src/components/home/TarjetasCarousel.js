@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 
-export default function TarjetasCarousel({ tarjetas, onClickTarjeta }) {
+export default function TarjetasCarousel({ tarjetas = [], onClickTarjeta }) {
   const [indice, setIndice] = useState(0);
   const total = tarjetas.length;
+
+  if (!tarjetas.length) return null;
 
   const anterior = () => {
     setIndice((i) => (i - 1 + total) % total);
@@ -13,8 +15,6 @@ export default function TarjetasCarousel({ tarjetas, onClickTarjeta }) {
   const siguiente = () => {
     setIndice((i) => (i + 1) % total);
   };
-
-  if (!tarjetas?.length) return null;
 
   return (
     <div className="w-full max-w-6xl mx-auto select-none px-4">
@@ -47,22 +47,17 @@ export default function TarjetasCarousel({ tarjetas, onClickTarjeta }) {
 
         {/* Ventana del carrusel */}
         <div className="overflow-visible mx-10 md:mx-14 py-8">
+          <div className="flex items-center justify-center gap-3 md:gap-5">
 
-          <div
-            className="flex items-center justify-center gap-3 md:gap-5"
-          >
             {tarjetas.map((t, index) => {
-              /*
-               * Calculamos la distancia respecto a la tarjeta central.
-               * Esto permite que la tarjeta seleccionada sea más grande.
-               */
               let distancia = index - indice;
 
-              // Ajustamos para que el carrusel sea circular
+              // Ajuste para carrusel circular
               if (distancia > total / 2) distancia -= total;
               if (distancia < -total / 2) distancia += total;
 
               const esCentro = distancia === 0;
+
               const esVisible =
                 distancia === -1 ||
                 distancia === 0 ||
@@ -73,10 +68,14 @@ export default function TarjetasCarousel({ tarjetas, onClickTarjeta }) {
               return (
                 <a
                   key={index}
-                  href={t.href}
+                  href={t.href || "#"}
                   target={t.target}
                   rel={t.target ? "noreferrer" : undefined}
-                  onClick={(e) => onClickTarjeta(e, t)}
+                  onClick={(e) => {
+                    if (onClickTarjeta) {
+                      onClickTarjeta(e, t);
+                    }
+                  }}
                   className={`
                     group
                     relative
@@ -88,8 +87,8 @@ export default function TarjetasCarousel({ tarjetas, onClickTarjeta }) {
                     p-3 md:p-5
                     flex flex-col items-center text-center
                     border-2
-                    ${t.cardBg}
-                    ${t.cardBorder}
+                    ${t.cardBg || ""}
+                    ${t.cardBorder || ""}
                     cursor-pointer
 
                     transition-all
@@ -102,10 +101,12 @@ export default function TarjetasCarousel({ tarjetas, onClickTarjeta }) {
                         : "scale-90 z-0 shadow-md opacity-80"
                     }
 
-                    hover:scale-[1.12]
+                    hover:scale-105
+                    hover:z-30
                     hover:opacity-100
                   `}
                 >
+
                   {/* Imagen */}
                   <div
                     className="
@@ -120,7 +121,7 @@ export default function TarjetasCarousel({ tarjetas, onClickTarjeta }) {
                   >
                     <img
                       src={t.img}
-                      alt={t.alt}
+                      alt={t.alt || t.title || "Tarjeta"}
                       className="
                         w-full
                         h-full
@@ -147,8 +148,8 @@ export default function TarjetasCarousel({ tarjetas, onClickTarjeta }) {
                   >
                     <span
                       className={`
-                        ${t.badgeBg}
-                        ${t.badgeText}
+                        ${t.badgeBg || ""}
+                        ${t.badgeText || ""}
                         px-3
                         py-0.5
                         rounded-full
@@ -187,6 +188,7 @@ export default function TarjetasCarousel({ tarjetas, onClickTarjeta }) {
                 </a>
               );
             })}
+
           </div>
         </div>
 
@@ -236,6 +238,7 @@ export default function TarjetasCarousel({ tarjetas, onClickTarjeta }) {
           />
         ))}
       </div>
+
     </div>
   );
 }
