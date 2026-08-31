@@ -103,6 +103,40 @@ export default function RegisterPage() {
           />
         </div>
 
+        {/* TELÉFONO */}
+        <div>
+          <label
+            htmlFor="telefono"
+            className="block text-sm font-medium text-[#020201] mb-1"
+          >
+            Número de teléfono
+          </label>
+
+          <input
+            id="telefono"
+            name="telefono"
+            type="tel"
+            required
+            autoComplete="tel"
+            placeholder="Ej: 3001234567"
+            className="
+              w-full
+              rounded-xl
+              border
+              border-black/10
+              bg-white
+              px-4
+              py-3
+              text-[#020201]
+              outline-none
+              transition
+              focus:border-[#003893]
+              focus:ring-2
+              focus:ring-[#003893]/20
+            "
+          />
+        </div>
+
         {/* CONTRASEÑA */}
         <PasswordField
           id="password"
