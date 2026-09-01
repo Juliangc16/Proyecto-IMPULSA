@@ -1,9 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@lib/client";
 import TarjetasCarousel from "@/components/home/TarjetasCarousel";
+import VideoEmprendedores from "@/components/home/VideoEmprendedores";
+import PanelAcademico from "@/components/home/PanelAcademico";
 
 const URL_CUADRO_AMARILLO = "/que-clase-de-emprendedor-soy";
 const URL_CUADRO_AZUL = "https://forms.cloud.microsoft/r/zz5CaG15Kq";
@@ -16,6 +18,9 @@ export default function Home() {
   const [usuario, setUsuario] = useState(null);
   const [cargandoSesion, setCargandoSesion] = useState(true);
   const [avisoLogin, setAvisoLogin] = useState(false);
+  const [mostrarTarjetaUsuario, setMostrarTarjetaUsuario] = useState(false);
+
+  const menuUsuarioRef = useRef(null);
 
   const frasesMotivadoras = [
     { texto: "El único modo de hacer un gran trabajo es amar lo que haces.", autor: "Steve Jobs" },
@@ -50,7 +55,9 @@ export default function Home() {
       cardBg: "bg-[#003893]/10",
       cardBorder: "border-[#003893]",
       title: "Mi idea comienza aquí",
-      desc: "Da el primer paso para convertir tu idea en un proyecto real."
+      desc: "Da el primer paso para convertir tu idea en un proyecto real.",
+      publica: true,
+      target: "_blank"
     },
     {
       href: URL_CUADRO_ROJO,
@@ -97,12 +104,31 @@ export default function Home() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const manejarClicFuera = (evento) => {
+      if (menuUsuarioRef.current && !menuUsuarioRef.current.contains(evento.target)) {
+        setMostrarTarjetaUsuario(false);
+      }
+    };
+
+    document.addEventListener("mousedown", manejarClicFuera);
+    return () => document.removeEventListener("mousedown", manejarClicFuera);
+  }, []);
+
   const manejarClicTarjeta = (evento, tarjeta) => {
     if (tarjeta?.publica) return;
     if (!usuario) {
       evento.preventDefault();
       setAvisoLogin(true);
     }
+  };
+
+  const manejarCerrarSesion = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setUsuario(null);
+    setMostrarTarjetaUsuario(false);
+    router.push("/");
   };
 
   const verificarDerechos = () => {
@@ -118,7 +144,6 @@ export default function Home() {
     return null;
   }
 
-  // PANTALLA DE CARGA (LOADER)
   if (loading) {
     return (
       <div className="fixed inset-0 w-screen h-screen bg-white grid place-items-center z-50 p-6 font-inter">
@@ -140,28 +165,22 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-stone-50 text-[#020201] font-inter flex flex-col pt-20 md:pt-24">
 
-      {/* Marca de agua / Metadatos */}
       <div className="hidden pointer-events-none opacity-0 select-none" data-creator="julian-magick">
         IMPULSA LAB 2026 - Todos los derechos reservados.
       </div>
 
-      {/* CABECERA FIJA CON FONDO BLANCO SÓLIDO */}
       <div 
         className="fixed top-0 left-0 w-full z-50 shadow-md"
         style={{ backgroundColor: "#ffffff" }}
       >
-        {/* ESPACIADOR INVISIBLE DE SEGURIDAD (Empuja el contenido hacia abajo sin que se note visualmente, garantizando que el "Bienvenidos" nunca quede oculto detrás de la cabecera fija) */}
         <div className="w-full h-8 md:h-5 bg-white" aria-hidden="true"></div>
 
-        {/* LOGOS Y MENÚ */}
         <header 
           className="flex items-center justify-between gap-4 px-4 md:px-8 py-3 flex-wrap"
           style={{ backgroundColor: "#ffffff" }}
         >
-          {/* CONTENEDOR DE LOGOS: Logo de la universidad ajustado 0.5 cm más hacia abajo (-10px) */}
           <div className="flex items-center shrink-0">
-            <a
-              href="https://universitariadecolombia.edu.co/"
+            <a href="https://universitariadecolombia.edu.co/"
               target="_blank"
               rel="noreferrer"
               className="transition hover:opacity-80 flex items-center shrink-0 -mt-[10px]"
@@ -191,11 +210,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* NAVEGACIÓN: ocupa el espacio disponible y centra los enlaces, sin desbordar el header */}
           <nav className="flex items-center justify-center flex-wrap gap-4 md:gap-10 font-montserrat text-sm flex-1 min-w-0 my-auto">
             {enlacesNavegacion.map((item, index) => (
-              <a
-                key={index}
+              <a key={index}
                 href={item.href}
                 className="text-[#020201] hover:text-[#003893] font-medium transition-colors duration-300 whitespace-nowrap"
               >
@@ -204,30 +221,76 @@ export default function Home() {
             ))}
           </nav>
 
-          {/* BOTÓN INICIAR SESIÓN */}
-          <Link
-            href="/login"
-            className="flex items-center gap-2 shrink-0 group"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-9 h-9 text-stone-400 group-hover:text-[#003893] transition-colors"
+          {usuario ? (
+            <div className="relative shrink-0" ref={menuUsuarioRef}>
+              <button
+                onClick={() => setMostrarTarjetaUsuario((valor) => !valor)}
+                className="text-sm font-semibold text-[#020201] hover:text-[#003893] transition-colors whitespace-nowrap"
+              >
+                Hola, {usuario.user_metadata?.nombre ?? usuario.email}
+              </button>
+
+              {mostrarTarjetaUsuario && (
+                <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-black/10 p-4 z-50 text-left">
+                  <p className="font-montserrat font-bold text-sm text-[#020201]">
+                    {usuario.user_metadata?.nombre ?? "Sin nombre registrado"}
+                  </p>
+                  <p className="text-xs text-stone-500 mt-0.5 break-all">
+                    {usuario.email}
+                  </p>
+
+                  <div className="mt-3 pt-3 border-t border-stone-100">
+                    {usuario.user_metadata?.tieneIdeaNegocio ? (
+                      <>
+                        <p className="text-xs font-medium text-stone-500 mb-1">
+                          Idea de negocio
+                        </p>
+                        <p className="text-sm font-semibold text-[#003893]">
+                          {usuario.user_metadata?.nombreEmprendimiento}
+                        </p>
+                      </>
+                    ) : (
+                      <a target="_blank" rel="noreferrer" href={URL_CUADRO_AZUL}
+                        className="block text-sm font-semibold text-[#003893] hover:underline"
+                      >
+                        ¿Quieres crear una idea de negocio?
+                      </a>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={manejarCerrarSesion}
+                    className="mt-4 w-full text-sm font-medium text-[#CE1126] hover:text-[#CE1126]/80 transition-colors text-center"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center gap-2 shrink-0 group"
             >
-              <path
-                fillRule="evenodd"
-                d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-sm font-medium text-stone-500 group-hover:text-[#003893] transition-colors whitespace-nowrap">
-              ¿Iniciar sesión?
-            </span>
-          </Link>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-9 h-9 text-stone-400 group-hover:text-[#003893] transition-colors"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-sm font-medium text-stone-500 group-hover:text-[#003893] transition-colors whitespace-nowrap">
+                ¿Iniciar sesión?
+              </span>
+            </Link>
+          )}
         </header>
 
-        {/* FRANJAS APILADAS DE BORDE A BORDE */}
         <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] flex flex-col">
           <div className="w-full h-[6px] bg-[#FCC21B]"></div>
           <div className="w-full h-[4.5px] bg-[#003893]"></div>
@@ -236,7 +299,6 @@ export default function Home() {
 
       </div>
 
-      {/* CUERPO PRINCIPAL */}
       <main className="flex-1 flex flex-col items-center px-6 py-8 gap-10">
         <section className="text-center space-y-4 max-w-2xl mx-auto">
           <h1 className="text-3xl md:text-4xl font-extrabold font-montserrat text-[#020201] tracking-tight leading-tight">
@@ -248,19 +310,19 @@ export default function Home() {
           </p>
         </section>
 
-        {/* TARJETAS: carrusel (amarillo, azul, rojo/noticias) */}
         <section className="w-full">
           <TarjetasCarousel tarjetas={tarjetas} onClickTarjeta={manejarClicTarjeta} />
         </section>
       </main>
 
+      <PanelAcademico usuario={usuario} />
+
       <section id="Nuestros-emprendedores">
-          <div className="px-6 py-8 text-center ">
-          <h2 className="text-3xl md:text-4xl font-extrabold font-montserrat text-[#020201] tracking-tight leading-tight">
-            Nuestros emprendedores
-            </h2>
-          </div>
+        <div className="px-6 py-8">
+          <VideoEmprendedores usuario={usuario} />
+        </div>
       </section>
+
 <hr className="w-[98%] mx-auto"/> 
       <section id= "Quienes_somos">   
         <div className="px-6 py-8 text-center">   
@@ -295,7 +357,6 @@ export default function Home() {
           </div>
       </section>
       <hr className="w-[98%] mx-auto my-6"/> 
-      {/* FOOTER */}
       <footer className="mt-auto border-t border-stone-200/50 bg-white">
         <div className="px-6 py-8 text-center">
           <h4 className="font-montserrat font-bold text-base text-[#020201] mb-2">
@@ -314,7 +375,6 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* AVISO: SESIÓN REQUERIDA */}
       {avisoLogin && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center space-y-4">

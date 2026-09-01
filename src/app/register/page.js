@@ -10,10 +10,7 @@ import PasswordField from "@/components/auth/PasswordField";
 import { registrarUsuario } from "./actions";
 
 export default function RegisterPage() {
-  const [estado, formAction, enviando] = useActionState(
-    registrarUsuario,
-    { error: null }
-  );
+  const [estado, formAction, enviando] = useActionState(registrarUsuario, { error: null });
 
   const [tieneIdea, setTieneIdea] = useState(false);
 
@@ -24,23 +21,16 @@ export default function RegisterPage() {
       footer={
         <>
           ¿Ya tienes una cuenta?{" "}
-          <Link
-            href="/login"
-            className="font-semibold text-[#003893] hover:underline"
-          >
+          <Link href="/login" className="font-semibold text-[#003893] hover:underline">
             Iniciar sesión
           </Link>
         </>
       }
     >
       <form action={formAction} className="space-y-5">
-
         {/* NOMBRE COMPLETO */}
         <div>
-          <label
-            htmlFor="nombre"
-            className="block text-sm font-medium text-[#020201] mb-1"
-          >
+          <label htmlFor="nombre" className="block text-sm font-medium text-[#020201] mb-1">
             Nombre completo
           </label>
 
@@ -51,64 +41,30 @@ export default function RegisterPage() {
             required
             autoComplete="name"
             placeholder="Escribe tu nombre completo"
-            className="
-              w-full
-              rounded-xl
-              border
-              border-black/10
-              bg-white
-              px-4
-              py-3
-              text-[#020201]
-              outline-none
-              transition
-              focus:border-[#003893]
-              focus:ring-2
-              focus:ring-[#003893]/20
-            "
+            className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-[#020201] outline-none transition focus:border-[#003893] focus:ring-2 focus:ring-[#003893]/20"
           />
         </div>
 
-        {/* USUARIO */}
+        {/* CORREO ELECTRÓNICO */}
         <div>
-          <label
-            htmlFor="usuario"
-            className="block text-sm font-medium text-[#020201] mb-1"
-          >
-            Usuario
+          <label htmlFor="email" className="block text-sm font-medium text-[#020201] mb-1">
+            Correo electrónico
           </label>
 
           <input
-            id="usuario"
-            name="usuario"
-            type="text"
+            id="email"
+            name="email"
+            type="email"
             required
-            autoComplete="username"
-            placeholder="Ejemplo: antuan123"
-            className="
-              w-full
-              rounded-xl
-              border
-              border-black/10
-              bg-white
-              px-4
-              py-3
-              text-[#020201]
-              outline-none
-              transition
-              focus:border-[#003893]
-              focus:ring-2
-              focus:ring-[#003893]/20
-            "
+            autoComplete="email"
+            placeholder="tucorreo@ejemplo.com"
+            className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-[#020201] outline-none transition focus:border-[#003893] focus:ring-2 focus:ring-[#003893]/20"
           />
         </div>
 
         {/* TELÉFONO */}
         <div>
-          <label
-            htmlFor="telefono"
-            className="block text-sm font-medium text-[#020201] mb-1"
-          >
+          <label htmlFor="telefono" className="block text-sm font-medium text-[#020201] mb-1">
             Número de teléfono
           </label>
 
@@ -119,31 +75,12 @@ export default function RegisterPage() {
             required
             autoComplete="tel"
             placeholder="Ej: 3001234567"
-            className="
-              w-full
-              rounded-xl
-              border
-              border-black/10
-              bg-white
-              px-4
-              py-3
-              text-[#020201]
-              outline-none
-              transition
-              focus:border-[#003893]
-              focus:ring-2
-              focus:ring-[#003893]/20
-            "
+            className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-[#020201] outline-none transition focus:border-[#003893] focus:ring-2 focus:ring-[#003893]/20"
           />
         </div>
 
         {/* CONTRASEÑA */}
-        <PasswordField
-          id="password"
-          name="password"
-          label="Contraseña"
-          autoComplete="new-password"
-        />
+        <PasswordField id="password" name="password" label="Contraseña" autoComplete="new-password" />
 
         {/* CONFIRMAR CONTRASEÑA */}
         <PasswordField
@@ -157,20 +94,7 @@ export default function RegisterPage() {
         <div className="pt-1">
           <label
             htmlFor="tieneIdea"
-            className="
-              flex
-              items-center
-              gap-3
-              cursor-pointer
-              rounded-xl
-              border
-              border-black/10
-              bg-[#003893]/5
-              px-4
-              py-3
-              transition
-              hover:border-[#003893]/30
-            "
+            className="flex items-center gap-3 cursor-pointer rounded-xl border border-black/10 bg-[#003893]/5 px-4 py-3 transition hover:border-[#003893]/30"
           >
             <input
               id="tieneIdea"
@@ -178,18 +102,11 @@ export default function RegisterPage() {
               type="checkbox"
               checked={tieneIdea}
               onChange={(e) => setTieneIdea(e.target.checked)}
-              className="
-                h-5
-                w-5
-                cursor-pointer
-                accent-[#003893]
-              "
+              className="h-5 w-5 cursor-pointer accent-[#003893]"
             />
 
             <div>
-              <p className="text-sm font-semibold text-[#020201]">
-                Tengo una idea emprendedora
-              </p>
+              <p className="text-sm font-semibold text-[#020201]">Tengo una idea emprendedora</p>
 
               <p className="text-xs text-stone-500 mt-0.5">
                 Marca esta opción si ya tienes una idea o emprendimiento.
@@ -201,10 +118,7 @@ export default function RegisterPage() {
         {/* NOMBRE DEL EMPRENDIMIENTO */}
         {tieneIdea && (
           <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-            <label
-              htmlFor="nombreEmprendimiento"
-              className="block text-sm font-medium text-[#020201] mb-1"
-            >
+            <label htmlFor="nombreEmprendimiento" className="block text-sm font-medium text-[#020201] mb-1">
               Nombre del emprendimiento
             </label>
 
@@ -214,26 +128,11 @@ export default function RegisterPage() {
               type="text"
               required={tieneIdea}
               placeholder="Escribe el nombre de tu emprendimiento"
-              className="
-                w-full
-                rounded-xl
-                border
-                border-black/10
-                bg-white
-                px-4
-                py-3
-                text-[#020201]
-                outline-none
-                transition
-                focus:border-[#003893]
-                focus:ring-2
-                focus:ring-[#003893]/20
-              "
+              className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-[#020201] outline-none transition focus:border-[#003893] focus:ring-2 focus:ring-[#003893]/20"
             />
 
             <p className="mt-1 text-xs text-stone-500">
-              Este campo es obligatorio porque marcaste que tienes una idea
-              emprendedora.
+              Este campo es obligatorio porque marcaste que tienes una idea emprendedora.
             </p>
           </div>
         )}
@@ -242,16 +141,7 @@ export default function RegisterPage() {
         {estado?.error && (
           <p
             role="alert"
-            className="
-              text-sm
-              text-[#CE1126]
-              bg-[#CE1126]/5
-              border
-              border-[#CE1126]/20
-              rounded-lg
-              px-3
-              py-2
-            "
+            className="text-sm text-[#CE1126] bg-[#CE1126]/5 border border-[#CE1126]/20 rounded-lg px-3 py-2"
           >
             {estado.error}
           </p>
@@ -261,16 +151,7 @@ export default function RegisterPage() {
         {estado?.success && (
           <p
             role="status"
-            className="
-              text-sm
-              text-green-700
-              bg-green-50
-              border
-              border-green-200
-              rounded-lg
-              px-3
-              py-2
-            "
+            className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2"
           >
             {estado.success}
           </p>
@@ -280,28 +161,10 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={enviando}
-          className="
-            w-full
-            rounded-xl
-            bg-[#003893]
-            px-4
-            py-3
-            text-white
-            font-semibold
-            font-montserrat
-            tracking-wide
-            transition
-            hover:bg-[#003893]/90
-            focus:outline-none
-            focus:ring-2
-            focus:ring-[#003893]/40
-            disabled:opacity-60
-            disabled:cursor-not-allowed
-          "
+          className="w-full rounded-xl bg-[#003893] px-4 py-3 text-white font-semibold font-montserrat tracking-wide transition hover:bg-[#003893]/90 focus:outline-none focus:ring-2 focus:ring-[#003893]/40 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {enviando ? "Creando cuenta..." : "Crear cuenta"}
         </button>
-
       </form>
     </AuthShell>
   );
