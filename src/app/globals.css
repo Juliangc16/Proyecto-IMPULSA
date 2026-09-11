@@ -1,9 +1,21 @@
 @import "tailwindcss";
+
 @config "../../tailwind.config.js";
 
 :root {
   --background: #ffffff;
   --foreground: #020201;
+
+  /* Paleta institucional */
+  --il-dark: #020201;
+  --il-yellow: #FCC21B;
+  --il-blue: #003893;
+  --il-red: #CE1126;
+
+  /* Curvas de animación */
+  --il-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --il-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --il-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 body {
@@ -11,70 +23,813 @@ body {
   color: var(--foreground);
 }
 
-/* =========================================================
-   Utilidades de animación "il-*" usadas en todo el proyecto
-   (tarjetas, noticias, eventos, galería, menús desplegables).
-   Respetan prefers-reduced-motion.
-   ========================================================= */
-@keyframes il-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes il-scale-in {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
+::selection {
+  background: rgba(0, 56, 147, 0.18);
+  color: var(--il-dark);
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .il-fade-in {
-    animation: il-fade-in 0.3s ease-out both;
+  html {
+    scroll-behavior: smooth;
   }
+}
 
-  .il-scale-in {
-    animation: il-scale-in 0.22s ease-out both;
-  }
+/* =========================================================
+   FOCO ACCESIBLE
+   ========================================================= */
 
-  .il-hover-lift {
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-  }
-  .il-hover-lift:hover {
-    transform: translateY(-3px);
-  }
+:focus-visible {
+  outline: 2px solid rgba(0, 56, 147, 0.55);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
 
-  .il-reveal {
+/* =========================================================
+   ANIMACIONES IL
+   ========================================================= */
+
+@keyframes il-fade-in {
+  from {
     opacity: 0;
-    transform: translateY(18px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
   }
-  .il-reveal.il-visible {
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes il-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
+@keyframes il-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes il-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(6px);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.015) translateY(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes il-shimmer {
+  0% {
+    transform: translateX(-120%) skewX(-12deg);
+  }
+
+  100% {
+    transform: translateX(220%) skewX(-12deg);
+  }
+}
+
+@keyframes il-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes il-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes il-spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   ANIMACIONES CON MOVIMIENTO
+   ========================================================= */
+
+@media (prefers-reduced-motion: no-preference) {
+  .il-fade-in {
+    animation: il-fade-in 0.3s var(--il-ease-out) both;
+  }
+
+  .il-fade-in-up {
+    animation: il-fade-in-up 0.5s var(--il-ease-out) both;
+  }
+
+  .il-scale-in {
+    animation: il-scale-in 0.24s var(--il-ease-out) both;
+  }
+
+  .il-pop-in {
+    animation: il-pop-in 0.45s var(--il-ease-spring) both;
+  }
+
+  .il-float {
+    animation: il-float 4.5s ease-in-out infinite;
+  }
+
+  .il-hover-lift {
+    transition:
+      transform 0.35s var(--il-ease-out),
+      box-shadow 0.35s var(--il-ease-out);
+  }
+
+  .il-hover-lift:hover {
+    transform: translateY(-4px);
+  }
+
+  .il-hover-lift:active {
+    transform: translateY(-1px) scale(0.985);
+  }
+
+  /*
+   * IMPORTANTE:
+   * Al hacerse visible usamos transform: none.
+   *
+   * Esto evita que Reveal mantenga un stacking context
+   * que pueda dejar los modales debajo de otros elementos.
+   */
+  .il-reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity 0.6s var(--il-ease-out),
+      transform 0.6s var(--il-ease-out);
+  }
+
+  .il-reveal.il-visible {
+    opacity: 1;
+    transform: none !important;
+  }
+}
+
+/* =========================================================
+   REDUCIR MOVIMIENTO
+   ========================================================= */
+
 @media (prefers-reduced-motion: reduce) {
   .il-fade-in,
+  .il-fade-in-up,
   .il-scale-in,
+  .il-pop-in,
+  .il-float,
   .il-hover-lift,
-  .il-reveal {
+  .il-reveal,
+  .il-shimmer-sweep::after,
+  .il-glow-pulse {
     animation: none !important;
     transition: none !important;
   }
+
   .il-reveal {
     opacity: 1;
+    transform: none !important;
+  }
+
+  .il-hover-lift:hover,
+  .il-hover-lift:active {
     transform: none;
   }
 }
 
-/* Scroll horizontal más discreto (noticias, carruseles) */
+/* =========================================================
+   SCROLL HORIZONTAL
+   ========================================================= */
+
 .il-scroll-fina {
   scrollbar-width: thin;
 }
+
 .il-scroll-fina::-webkit-scrollbar {
   height: 6px;
 }
+
 .il-scroll-fina::-webkit-scrollbar-thumb {
   background: rgba(2, 2, 1, 0.15);
   border-radius: 9999px;
+}
+
+/* =========================================================
+   TARJETAS / SUPERFICIES
+   ========================================================= */
+
+.il-card {
+  position: relative;
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #fbfaf7 100%
+  );
+
+  border: 1px solid rgba(2, 2, 1, 0.07);
+
+  border-radius: 1.25rem;
+
+  box-shadow:
+    0 2px 10px -4px rgba(2, 2, 1, 0.10);
+
+  transition:
+    transform 0.4s var(--il-ease-out),
+    box-shadow 0.4s var(--il-ease-out),
+    border-color 0.4s var(--il-ease-out);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .il-card:hover {
+    transform: translateY(-5px);
+
+    box-shadow:
+      0 22px 45px -18px rgba(0, 56, 147, 0.30);
+
+    border-color: rgba(0, 56, 147, 0.18);
+  }
+}
+
+.il-surface-mesh {
+  background-color: #fafaf8;
+
+  background-image:
+    radial-gradient(
+      circle at 12% 8%,
+      rgba(252, 194, 27, 0.10),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 88% 4%,
+      rgba(0, 56, 147, 0.10),
+      transparent 46%
+    ),
+    radial-gradient(
+      circle at 50% 100%,
+      rgba(206, 17, 38, 0.07),
+      transparent 55%
+    );
+}
+
+.il-glass-header {
+  background: rgba(255, 255, 255, 0.86);
+
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+
+  box-shadow:
+    0 1px 0 rgba(2, 2, 1, 0.06),
+    0 12px 30px -18px rgba(2, 2, 1, 0.25);
+}
+
+/* =========================================================
+   FRANJA TRICOLOR
+   ========================================================= */
+
+.il-flag-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.il-flag-bar::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.55),
+      transparent
+    );
+
+  transform: translateX(-100%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .il-flag-bar::after {
+    animation:
+      il-shimmer
+      5s
+      var(--il-ease-in-out)
+      1.2s
+      infinite;
+  }
+}
+
+/* =========================================================
+   BOTONES PREMIUM
+   ========================================================= */
+
+.il-btn {
+  position: relative;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.5rem;
+
+  overflow: hidden;
+
+  border-radius: 0.85rem;
+
+  font-family:
+    var(--font-montserrat),
+    sans-serif;
+
+  font-weight: 600;
+
+  letter-spacing: 0.01em;
+
+  padding: 0.8rem 1.15rem;
+
+  transition:
+    transform 0.25s var(--il-ease-out),
+    box-shadow 0.3s var(--il-ease-out),
+    background-color 0.3s var(--il-ease-out),
+    border-color 0.3s var(--il-ease-out),
+    color 0.3s var(--il-ease-out),
+    opacity 0.3s var(--il-ease-out);
+
+  will-change: transform;
+}
+
+.il-btn::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      115deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.35) 50%,
+      transparent 80%
+    );
+
+  transform: translateX(-120%);
+
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .il-btn:hover:not(:disabled)::before {
+    animation:
+      il-shimmer
+      0.9s
+      var(--il-ease-out);
+  }
+
+  .il-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  .il-btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.97);
+  }
+}
+
+.il-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.il-btn-primary {
+  background:
+    linear-gradient(
+      135deg,
+      #003893 0%,
+      #0247b8 100%
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 10px 24px -10px rgba(0, 56, 147, 0.55);
+}
+
+.il-btn-primary:hover:not(:disabled) {
+  box-shadow:
+    0 16px 32px -10px rgba(0, 56, 147, 0.6);
+}
+
+.il-btn-primary:focus-visible {
+  box-shadow:
+    0 0 0 4px rgba(0, 56, 147, 0.22);
+}
+
+.il-btn-danger {
+  background:
+    linear-gradient(
+      135deg,
+      #CE1126 0%,
+      #e01a30 100%
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 10px 24px -10px rgba(206, 17, 38, 0.5);
+}
+
+.il-btn-danger:hover:not(:disabled) {
+  box-shadow:
+    0 16px 32px -10px rgba(206, 17, 38, 0.55);
+}
+
+.il-btn-accent {
+  background:
+    linear-gradient(
+      135deg,
+      #FCC21B 0%,
+      #ffd452 100%
+    );
+
+  color: #020201;
+
+  box-shadow:
+    0 10px 24px -10px rgba(252, 194, 27, 0.55);
+}
+
+.il-btn-outline {
+  background: rgba(255, 255, 255, 0.6);
+
+  color: var(--il-blue);
+
+  border:
+    1.5px solid rgba(0, 56, 147, 0.55);
+}
+
+.il-btn-outline:hover:not(:disabled) {
+  background: var(--il-blue);
+  color: #ffffff;
+}
+
+.il-btn-ghost {
+  color: #78716c;
+  padding: 0.8rem 1.15rem;
+}
+
+.il-btn-ghost:hover:not(:disabled) {
+  color: var(--il-dark);
+}
+
+/* =========================================================
+   INPUTS PREMIUM
+   ========================================================= */
+
+.il-input {
+  width: 100%;
+
+  border-radius: 0.85rem;
+
+  border:
+    1.5px solid rgba(2, 2, 1, 0.10);
+
+  background: #ffffff;
+
+  padding: 0.8rem 1.05rem;
+
+  color: var(--il-dark);
+
+  box-shadow:
+    inset 0 1px 2px rgba(2, 2, 1, 0.04);
+
+  outline: none;
+
+  transition:
+    border-color 0.3s var(--il-ease-out),
+    box-shadow 0.3s var(--il-ease-out),
+    background-color 0.3s var(--il-ease-out);
+}
+
+.il-input::placeholder {
+  color: rgba(2, 2, 1, 0.35);
+}
+
+.il-input:hover {
+  border-color: rgba(2, 2, 1, 0.18);
+}
+
+.il-input:focus {
+  border-color: var(--il-blue);
+
+  box-shadow:
+    0 0 0 4px rgba(0, 56, 147, 0.14);
+
+  background: #ffffff;
+}
+
+.il-input-error {
+  border-color:
+    rgba(206, 17, 38, 0.55) !important;
+}
+
+.il-input-error:focus {
+  box-shadow:
+    0 0 0 4px rgba(206, 17, 38, 0.14) !important;
+}
+
+.il-input-success {
+  border-color:
+    rgba(34, 158, 92, 0.55) !important;
+}
+
+/* =========================================================
+   CARRUSELES
+   ========================================================= */
+
+.il-arrow-btn {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.92);
+
+  backdrop-filter: blur(6px);
+
+  border:
+    1px solid rgba(2, 2, 1, 0.08);
+
+  box-shadow:
+    0 10px 24px -10px rgba(2, 2, 1, 0.25);
+
+  color: #78716c;
+
+  transition:
+    transform 0.3s var(--il-ease-spring),
+    box-shadow 0.3s var(--il-ease-out),
+    color 0.3s var(--il-ease-out),
+    border-color 0.3s var(--il-ease-out);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .il-arrow-btn:hover {
+    transform: scale(1.08);
+  }
+
+  .il-arrow-btn:active {
+    transform: scale(0.94);
+  }
+}
+
+.il-dot {
+  height: 0.5rem;
+  width: 0.5rem;
+
+  border-radius: 9999px;
+
+  background:
+    rgba(2, 2, 1, 0.18);
+
+  transition:
+    width 0.4s var(--il-ease-spring),
+    background-color 0.4s var(--il-ease-out),
+    box-shadow 0.4s var(--il-ease-out);
+}
+
+.il-dot-active {
+  width: 1.6rem;
+}
+
+/* =========================================================
+   PROFUNDIDAD 3D DEL CARRUSEL
+   ========================================================= */
+
+.il-carousel-stage {
+  perspective: 1400px;
+}
+
+.il-carousel-card {
+  transition:
+    transform 0.55s var(--il-ease-out),
+    opacity 0.55s var(--il-ease-out),
+    filter 0.55s var(--il-ease-out),
+    box-shadow 0.55s var(--il-ease-out);
+
+  transform-style: preserve-3d;
+
+  will-change:
+    transform,
+    opacity,
+    filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .il-arrow-btn:hover,
+  .il-arrow-btn:active {
+    transform: none;
+  }
+
+  .il-carousel-card {
+    transition:
+      opacity 0.2s linear;
+  }
+}
+
+/* =========================================================
+   PERSONAJE DEL AVE
+   LOGIN / REGISTRO
+   ========================================================= */
+
+/*
+ * Contenedor principal del ave.
+ */
+
+.il-ave-marco {
+  position: relative;
+
+  isolation: isolate;
+
+  overflow: hidden;
+
+  border-radius: 9999px;
+
+  user-select: none;
+
+  -webkit-user-select: none;
+
+  box-shadow:
+    0 14px 35px -15px rgba(0, 56, 147, 0.35);
+
+  background:
+    rgba(252, 194, 27, 0.20);
+}
+
+/*
+ * Imagen del ave.
+ */
+
+.il-ave-marco img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/*
+ * Pupila que sigue el cursor.
+ */
+
+.il-pupila {
+  z-index: 20;
+
+  pointer-events: none;
+
+  transform: translate(0, 0);
+
+  will-change: transform;
+
+  transition:
+    transform 0.12s linear;
+}
+
+/*
+ * Ala protectora.
+ */
+
+.il-ala {
+  z-index: 30;
+
+  pointer-events: none;
+
+  transform:
+    translate(0, 0)
+    rotate(0deg);
+
+  transform-origin:
+    center center;
+
+  transition:
+    transform 0.5s var(--il-ease-spring),
+    opacity 0.35s ease;
+}
+
+/*
+ * Cuando el usuario entra en contraseña,
+ * el ala se cierra sobre el ojo.
+ */
+
+.il-ala.il-ala-cerrada {
+  transform:
+    translate(9%, 8%)
+    rotate(12deg);
+}
+
+/*
+ * Evita que el SVG interfiera con los eventos
+ * del formulario.
+ */
+
+.il-ala svg {
+  pointer-events: none;
+}
+
+/*
+ * Estilos antiguos del personaje.
+ * Los mantenemos para no romper ningún componente
+ * que todavía los esté utilizando.
+ */
+
+.il-bird-pupil {
+  transition:
+    transform 0.12s linear;
+}
+
+.il-bird-wing-cover {
+  transform-origin: 129px 96px;
+
+  transition:
+    transform 0.5s var(--il-ease-spring);
+}
+
+/* =========================================================
+   MODALES
+   ========================================================= */
+
+/*
+ * Los modales deben quedar por encima de absolutamente
+ * todo el contenido visual de la página.
+ */
+
+.il-modal-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 9999;
+
+  isolation: isolate;
+}
+
+/*
+ * Contenido del modal.
+ */
+
+.il-modal-content {
+  position: relative;
+
+  z-index: 10000;
+}
+
+/*
+ * Botones dentro de modales.
+ */
+
+.il-modal-content button {
+  position: relative;
+
+  z-index: 10001;
+}
+
+/* =========================================================
+   REDUCED MOTION DEL AVE
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .il-pupila {
+    transition: none;
+  }
+
+  .il-ala {
+    transition:
+      transform 0.15s linear;
+  }
+
+  .il-ave-marco {
+    transition: none;
+  }
 }

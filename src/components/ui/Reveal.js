@@ -3,12 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Envuelve cualquier contenido y lo hace aparecer suavemente
- * (fade + slide up) cuando entra en la pantalla al hacer scroll.
- * No usa librerías externas y respeta prefers-reduced-motion
- * (ver .il-reveal en globals.css).
+ * Hace aparecer suavemente un elemento cuando entra en pantalla.
+ * Respeta prefers-reduced-motion.
+ *
+ * IMPORTANTE:
+ * Cuando el elemento ya está visible usamos transform: none.
+ * Esto evita crear un stacking context que pueda colocar los
+ * modales por debajo de otros elementos de la página.
  */
-export default function Reveal({ children, className = "", delayMs = 0, as: Tag = "div" }) {
+export default function Reveal({
+  children,
+  className = "",
+  delayMs = 0,
+  as: Tag = "div",
+}) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
 
@@ -29,13 +37,16 @@ export default function Reveal({ children, className = "", delayMs = 0, as: Tag 
     );
 
     observador.observe(nodo);
+
     return () => observador.disconnect();
   }, []);
 
   return (
     <Tag
       ref={ref}
-      className={`il-reveal ${visible ? "il-visible" : ""} ${className}`}
+      className={`il-reveal ${
+        visible ? "il-visible" : ""
+      } ${className}`}
       style={delayMs ? { transitionDelay: `${delayMs}ms` } : undefined}
     >
       {children}

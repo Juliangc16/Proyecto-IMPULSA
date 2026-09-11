@@ -61,10 +61,13 @@ export default function InfoDropdownNav({ items }) {
                 role="dialog"
                 className="il-scale-in absolute left-1/2 top-full z-50 mt-3 w-80 max-w-[88vw] -translate-x-1/2 rounded-2xl border border-black/10 bg-white p-6 text-left shadow-xl"
               >
-                <h3 className="font-montserrat font-bold text-sm text-[#003893] mb-2 uppercase tracking-wide">
+                <h3 className="font-montserrat font-bold text-sm text-[#003893] mb-3 uppercase tracking-wide text-center">
                   {item.titulo}
                 </h3>
-                <p className="text-sm text-stone-600 leading-relaxed">{item.texto}</p>
+
+                <p className="text-sm text-stone-600 leading-relaxed text-center">
+                  {item.texto}
+                </p>
               </div>
             )}
           </div>
