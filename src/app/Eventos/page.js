@@ -170,11 +170,12 @@ export default function EventosPage() {
 
 function TarjetaEvento({ evento, puedeAdministrar, onEditar, onEliminar }) {
   return (
-    <article
+    <Reveal
+      as="article"
       key={evento.id}
-      className="il-fade-in bg-white border-2 border-[#CE1126]/20 rounded-2xl overflow-hidden shadow-md il-hover-lift"
+      className="bg-white border-2 border-[#CE1126]/20 rounded-2xl overflow-hidden shadow-md il-hover-lift"
     >
-      <div className="w-full aspect-video bg-stone-100 flex items-center justify-center overflow-hidden">
+      <div className="w-full aspect-video md:aspect-[16/8] bg-stone-100 flex items-center justify-center overflow-hidden">
         {evento.imagen_url ? (
           <img
             src={evento.imagen_url}
@@ -186,9 +187,9 @@ function TarjetaEvento({ evento, puedeAdministrar, onEditar, onEliminar }) {
         )}
       </div>
 
-      <div className="p-5 md:p-6 space-y-3">
+      <div className="p-5 md:p-8 space-y-3">
         <div className="flex items-start justify-between gap-3">
-          <h2 className="font-montserrat font-bold text-lg md:text-xl text-[#020201]">
+          <h2 className="font-montserrat font-bold text-lg md:text-2xl text-[#020201]">
             {evento.titulo}
           </h2>
 
@@ -210,7 +211,7 @@ function TarjetaEvento({ evento, puedeAdministrar, onEditar, onEliminar }) {
           )}
         </div>
 
-        <p className="text-stone-600 text-sm leading-relaxed whitespace-pre-line">
+        <p className="text-stone-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
           {evento.descripcion}
         </p>
 
@@ -237,6 +238,6 @@ function TarjetaEvento({ evento, puedeAdministrar, onEditar, onEliminar }) {
           )}
         </div>
       </div>
-    </article>
+    </Reveal>
   );
 }

@@ -137,6 +137,20 @@ body {
   }
 }
 
+@keyframes il-target-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 56, 147, 0.35);
+  }
+
+  60% {
+    box-shadow: 0 0 0 14px rgba(0, 56, 147, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 56, 147, 0);
+  }
+}
+
 /* =========================================================
    ANIMACIONES CON MOVIMIENTO
    ========================================================= */
@@ -194,6 +208,10 @@ body {
   .il-reveal.il-visible {
     opacity: 1;
     transform: none !important;
+  }
+
+  .il-detalle-panel:target {
+    animation: il-target-pulse 1.4s var(--il-ease-out);
   }
 }
 

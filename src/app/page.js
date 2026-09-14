@@ -7,7 +7,7 @@ import TarjetasCarousel from "@/components/home/TarjetasCarousel";
 import VideoEmprendedores from "@/components/home/VideoEmprendedores";
 import PanelAcademico from "@/components/home/PanelAcademico";
 import NoticiasHome from "@/components/home/NoticiasHome";
-import InfoDropdownNav from "@/components/home/InfoDropdownNav";
+import { SobreNosotrosTeaser, SobreNosotrosDetalle } from "@/components/home/SobreNosotros";
 
 const URL_CUADRO_AMARILLO = "/que-clase-de-emprendedor-soy";
 const URL_CUADRO_AZUL = "https://forms.cloud.microsoft/r/zz5CaG15Kq";
@@ -35,6 +35,7 @@ export default function Home() {
       id: "quienes",
       label: "¿Quiénes somos?",
       titulo: "Quiénes somos",
+      resumen: "El laboratorio de emprendimiento universitario de IMPULSA LAB.",
       texto: (
         <>
           <strong>IMPULSA LAB</strong> es el laboratorio de emprendimiento universitario diseñado
@@ -52,6 +53,7 @@ export default function Home() {
       id: "hacemos",
       label: "¿Qué hacemos?",
       titulo: "Que hacemos",
+      resumen: "Acompañamos tu idea desde el primer paso hasta un negocio real.",
       texto: (
         <>
           En <strong>IMPULSA LAB</strong> impulsamos el desarrollo de emprendedores desde la etapa
@@ -66,6 +68,7 @@ export default function Home() {
       id: "proposito",
       label: "¿Cuál es nuestro propósito?",
       titulo: "¿Cual es nuestro proposito?",
+      resumen: "Formar una nueva generación de emprendedores exitosos y sostenibles.",
       texto: (
         <>
           Nuestro proposito es formar una nueva generacion de emprendedores capaces de transformar
@@ -253,8 +256,6 @@ export default function Home() {
             </div>
           </div>
 
-          <InfoDropdownNav items={infoDesplegable} />
-
           {usuario ? (
             <div className="relative shrink-0" ref={menuUsuarioRef}>
               <button
@@ -345,6 +346,10 @@ export default function Home() {
         </section>
 
         <section className="w-full">
+          <SobreNosotrosTeaser items={infoDesplegable} />
+        </section>
+
+        <section className="w-full">
           <NoticiasHome usuario={usuario} />
         </section>
 
@@ -361,6 +366,8 @@ export default function Home() {
         </div>
       </section>
 
+      <SobreNosotrosDetalle items={infoDesplegable} />
+
 <hr className="w-[98%] mx-auto my-6"/>
       <footer className="mt-auto border-t border-stone-200/50 bg-white">
         <div className="px-6 py-8 text-center">
@@ -374,6 +381,36 @@ export default function Home() {
             </a>{" "}
             o comunícate con nosotros a través de nuestras redes sociales.
           </p>
+
+          <div className="mt-5 flex items-center justify-center gap-4">
+            <a
+              href="https://www.instagram.com/somosimpulsalab/"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram de IMPULSA LAB"
+              title="Instagram de IMPULSA LAB"
+              className="il-hover-lift flex w-11 h-11 items-center justify-center rounded-full border border-stone-200 text-stone-500 transition-colors hover:border-[#003893] hover:text-[#003893]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-5 h-5">
+                <rect x="3" y="3" width="18" height="18" rx="5" ry="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="17.4" cy="6.6" r="0.9" fill="currentColor" stroke="none" />
+              </svg>
+            </a>
+
+            <a
+              href="https://www.tiktok.com/@somos_impulsalab"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="TikTok de IMPULSA LAB"
+              title="TikTok de IMPULSA LAB"
+              className="il-hover-lift flex w-11 h-11 items-center justify-center rounded-full border border-stone-200 text-stone-500 transition-colors hover:border-[#003893] hover:text-[#003893]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <path d="M14.5 2.5c.35 2.35 1.9 4.1 4.3 4.4v2.6c-1.55.02-2.98-.46-4.3-1.35v6.34a5.28 5.28 0 11-4.7-5.25v2.68a2.7 2.7 0 102.3 2.67V2.5h2.4z" />
+              </svg>
+            </a>
+          </div>
         </div>
         <div className="py-4 text-center text-xs text-stone-400 font-inter border-t border-stone-200/50">
           © 2026 IMPULSA LAB — Institución Universitaria de Colombia

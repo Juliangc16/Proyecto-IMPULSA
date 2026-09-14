@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@lib/client";
-import { ROLES } from "@/lib/roles";
+import { esDirectorOAdministrador } from "@/lib/roles";
 import Reveal from "@/components/ui/Reveal";
 
 function formatearFecha(fecha) {
@@ -40,9 +40,7 @@ export default function NoticiasHome({ usuario }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [indice, setIndice] = useState(0);
 
-  const rol = usuario?.user_metadata?.rol ?? null;
-
-  const esAdministrador = rol === ROLES.ADMINISTRADOR;
+  const puedeAdministrar = esDirectorOAdministrador(usuario);
 
   const total = noticias.length;
 
@@ -69,13 +67,8 @@ export default function NoticiasHome({ usuario }) {
   }, []);
 
   useEffect(() => {
-    if (!esAdministrador) {
-      setCargando(false);
-      return;
-    }
-
     cargarNoticias();
-  }, [cargarNoticias, esAdministrador]);
+  }, [cargarNoticias]);
 
   /* =========================================================
      REINICIAR ÍNDICE
@@ -115,13 +108,9 @@ export default function NoticiasHome({ usuario }) {
     setIndice((i) => (i + 1) % total);
   };
 
-  /* =========================================================
-     SOLO ADMINISTRADORES
-     ========================================================= */
-
-  if (!esAdministrador) return null;
-
   if (cargando) return null;
+
+  if (!puedeAdministrar && noticias.length === 0) return null;
 
   const noticiaActual = noticias[indice];
 
@@ -129,7 +118,7 @@ export default function NoticiasHome({ usuario }) {
     <>
       <Reveal
         as="section"
-        className="w-full max-w-3xl mx-auto px-2"
+        className="w-full max-w-4xl mx-auto px-2"
       >
         {/* =====================================================
             ENCABEZADO
@@ -140,13 +129,15 @@ export default function NoticiasHome({ usuario }) {
             Noticias
           </h2>
 
-          <button
-            type="button"
-            onClick={() => setMostrarFormulario(true)}
-            className="il-hover-lift relative z-10 rounded-xl bg-[#CE1126] px-3 py-2 text-white text-xs md:text-sm font-semibold font-montserrat tracking-wide transition hover:bg-[#CE1126]/90"
-          >
-            + Agregar noticia
-          </button>
+          {puedeAdministrar && (
+            <button
+              type="button"
+              onClick={() => setMostrarFormulario(true)}
+              className="il-hover-lift relative z-10 rounded-xl bg-[#CE1126] px-3 py-2 text-white text-xs md:text-sm font-semibold font-montserrat tracking-wide transition hover:bg-[#CE1126]/90"
+            >
+              + Agregar noticia
+            </button>
+          )}
         </div>
 
         {/* =====================================================
@@ -158,7 +149,7 @@ export default function NoticiasHome({ usuario }) {
             Todavía no hay noticias publicadas.
           </p>
         ) : (
-          <div className="relative w-full max-w-xl mx-auto">
+          <div className="relative w-full max-w-2xl mx-auto">
 
             {/* =================================================
                 BOTÓN ANTERIOR
@@ -188,7 +179,7 @@ export default function NoticiasHome({ usuario }) {
                 onClick={() => setNoticiaAbierta(noticiaActual)}
                 className="il-fade-in il-hover-lift text-left w-full bg-white rounded-2xl border-2 border-[#CE1126]/20 overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300"
               >
-                <div className="w-full aspect-video bg-stone-100 overflow-hidden">
+                <div className="w-full aspect-video md:aspect-[16/8] bg-stone-100 overflow-hidden">
                   {noticiaActual.imagen_url ? (
                     <img
                       src={noticiaActual.imagen_url}
@@ -203,19 +194,28 @@ export default function NoticiasHome({ usuario }) {
                   )}
                 </div>
 
-                <div className="p-4 space-y-1.5">
-                  <h3 className="font-montserrat font-bold text-sm text-[#020201] line-clamp-2">
+                <div className="p-4 md:p-6 space-y-1.5 md:space-y-2">
+                  <h3 className="font-montserrat font-bold text-sm md:text-lg text-[#020201] line-clamp-2">
                     {noticiaActual.titulo}
                   </h3>
 
-                  <p className="text-stone-600 text-xs leading-relaxed line-clamp-2">
+                  <p className="text-stone-600 text-xs md:text-sm leading-relaxed line-clamp-2">
                     {noticiaActual.contenido}
                   </p>
 
-                  <p className="text-[11px] text-stone-400 pt-1">
-                    {noticiaActual.autor_nombre ?? "IMPULSA LAB"} ·{" "}
-                    {formatearFecha(noticiaActual.creado_en)}
-                  </p>
+                  <div className="flex items-center justify-between gap-3 pt-1 md:pt-2">
+                    <p className="text-[11px] md:text-xs text-stone-400">
+                      {noticiaActual.autor_nombre ?? "IMPULSA LAB"} ·{" "}
+                      {formatearFecha(noticiaActual.creado_en)}
+                    </p>
+
+                    <span className="shrink-0 inline-flex items-center gap-1 text-xs md:text-sm font-semibold text-[#CE1126]">
+                      Leer ahora
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </span>
+                  </div>
                 </div>
               </button>
             )}
@@ -274,19 +274,19 @@ export default function NoticiasHome({ usuario }) {
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className="relative z-[100000] bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+              className="relative z-[100000] bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             >
               {noticiaAbierta.imagen_url && (
                 <img
                   src={noticiaAbierta.imagen_url}
                   alt={noticiaAbierta.titulo}
-                  className="w-full aspect-video object-cover rounded-t-2xl"
+                  className="w-full aspect-video md:aspect-[16/8] object-cover rounded-t-2xl"
                 />
               )}
 
-              <div className="p-6 space-y-3">
+              <div className="p-6 md:p-8 space-y-3">
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-montserrat font-bold text-lg text-[#020201]">
+                  <h3 className="font-montserrat font-bold text-lg md:text-2xl text-[#020201]">
                     {noticiaAbierta.titulo}
                   </h3>
 

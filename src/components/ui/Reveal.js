@@ -16,6 +16,7 @@ export default function Reveal({
   className = "",
   delayMs = 0,
   as: Tag = "div",
+  ...props
 }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
@@ -41,13 +42,20 @@ export default function Reveal({
     return () => observador.disconnect();
   }, []);
 
+  const { style: styleExtra, ...otrasProps } = props;
+
   return (
     <Tag
       ref={ref}
+      {...otrasProps}
       className={`il-reveal ${
         visible ? "il-visible" : ""
       } ${className}`}
-      style={delayMs ? { transitionDelay: `${delayMs}ms` } : undefined}
+      style={
+        delayMs
+          ? { transitionDelay: `${delayMs}ms`, ...styleExtra }
+          : styleExtra
+      }
     >
       {children}
     </Tag>

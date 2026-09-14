@@ -1,3 +1,8 @@
+-- Ejecutar en el SQL Editor de Supabase (proyecto de IMPULSA LAB)
+
+-- =========================================================
+-- 1) TABLA: noticias
+-- =========================================================
 create table if not exists public.noticias (
   id uuid primary key default gen_random_uuid(),
   titulo text not null,
@@ -10,10 +15,12 @@ create table if not exists public.noticias (
 
 alter table public.noticias enable row level security;
 
+-- Cualquiera (incluso sin sesión) puede leer noticias
 create policy "noticias_lectura_publica"
   on public.noticias for select
   using (true);
 
+-- Solo DIRECTOR o ADMINISTRADOR pueden crear/editar/borrar noticias
 create policy "noticias_escritura_director_admin"
   on public.noticias for insert
   with check (
@@ -48,6 +55,9 @@ create policy "noticias_imagenes_subida_director_admin"
     and (auth.jwt() -> 'user_metadata' ->> 'rol') in ('DIRECTOR', 'ADMINISTRADOR')
   );
 
+-- =========================================================
+-- 2) TABLA: diagnosticos (resultado del cuadro amarillo)
+-- =========================================================
 create table if not exists public.diagnosticos (
   id uuid primary key default gen_random_uuid(),
   usuario_id uuid references auth.users(id),
@@ -69,6 +79,7 @@ create table if not exists public.diagnosticos (
 
 alter table public.diagnosticos enable row level security;
 
+-- El estudiante solo puede ver/crear sus propios diagnósticos
 create policy "diagnosticos_lectura_propia"
   on public.diagnosticos for select
   using (auth.uid() = usuario_id);
@@ -77,6 +88,7 @@ create policy "diagnosticos_insercion_propia"
   on public.diagnosticos for insert
   with check (auth.uid() = usuario_id);
 
+-- PROFESOR, DIRECTOR y ADMINISTRADOR pueden ver todos los diagnósticos
 create policy "diagnosticos_lectura_staff"
   on public.diagnosticos for select
   using (
