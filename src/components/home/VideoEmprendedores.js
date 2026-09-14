@@ -6,21 +6,44 @@ import { esDirectorOAdministrador } from "@/lib/roles";
 
 const SECCION_VIDEO = "nuestros_emprendedores";
 
+// Extrae el ID de video de YouTube sin importar el formato del link:
+// watch?v=, youtu.be/, shorts/, embed/ o live/. Esto es lo que faltaba
+// para que los YouTube Shorts funcionaran (no era un problema de la
+// base de datos, sino que el link de un Short no se reconocía aquí).
+function obtenerIdYoutube(url) {
+  if (!url) return null;
+
+  const patrones = [
+    /youtube\.com\/watch\?[^#]*\bv=([a-zA-Z0-9_-]{11})/,
+    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/live\/([a-zA-Z0-9_-]{11})/,
+  ];
+
+  for (const patron of patrones) {
+    const coincidencia = url.match(patron);
+    if (coincidencia) return coincidencia[1];
+  }
+
+  return null;
+}
+
+export function esShortDeYoutube(url) {
+  return /youtube\.com\/shorts\//i.test(url || "");
+}
+
 function obtenerUrlEmbed(url) {
   if (!url) return null;
+
+  const idYoutube = obtenerIdYoutube(url);
+  if (idYoutube) {
+    return `https://www.youtube.com/embed/${idYoutube}`;
+  }
 
   try {
     const u = new URL(url);
 
-    if (u.hostname.includes("youtube.com") && u.searchParams.get("v")) {
-      return `https://www.youtube.com/embed/${u.searchParams.get("v")}`;
-    }
-    if (u.hostname === "youtu.be") {
-      return `https://www.youtube.com/embed${u.pathname}`;
-    }
-    if (u.hostname.includes("youtube.com") && u.pathname.startsWith("/embed/")) {
-      return url;
-    }
     if (u.hostname.includes("vimeo.com") && !u.pathname.startsWith("/video/")) {
       const id = u.pathname.split("/").filter(Boolean)[0];
       if (id) return `https://player.vimeo.com/video/${id}`;
@@ -167,10 +190,30 @@ export default function VideoEmprendedores({ usuario }) {
                   type="url"
                   required
                   value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="https://youtube.com/watch?v=..."
+                  onChange={(e) => {
+                    const valor = e.target.value;
+                    setUrlInput(valor);
+
+                    // Si es un Short (formato vertical) y el usuario no ha
+                    // tocado las medidas todavía, sugerimos un tamaño
+                    // vertical automáticamente para que se vea bien.
+                    if (
+                      esShortDeYoutube(valor) &&
+                      Number(anchoInput) === 640 &&
+                      Number(altoInput) === 360
+                    ) {
+                      setAnchoInput(360);
+                      setAltoInput(640);
+                    }
+                  }}
+                  placeholder="https://youtube.com/watch?v=... o .../shorts/..."
                   className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-[#003893]"
                 />
+                {esShortDeYoutube(urlInput) && (
+                  <p className="mt-1 text-[11px] text-stone-500">
+                    Detectamos un YouTube Short: te sugerimos un tamaño vertical (360×640).
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-3">

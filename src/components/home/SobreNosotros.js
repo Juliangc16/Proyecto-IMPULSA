@@ -2,10 +2,6 @@
 
 import Reveal from "@/components/ui/Reveal";
 
-/* =========================================================
-   ICONOS
-   ========================================================= */
-
 const ICONOS = {
   quienes: (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-7 h-7 md:w-8 md:h-8">
@@ -30,10 +26,6 @@ const FLECHA_ABAJO = (
   </svg>
 );
 
-/* =========================================================
-   TARJETAS SUPERIORES (TEASER)
-   ========================================================= */
-
 export function SobreNosotrosTeaser({ items = [] }) {
   if (!items.length) return null;
 
@@ -52,7 +44,7 @@ export function SobreNosotrosTeaser({ items = [] }) {
         {items.map((item, index) => (
           <Reveal key={item.id} delayMs={index * 120} className="h-full">
             <a
-              href={`#detalle-${item.id}`}
+              href={"/Nosotros#detalle-" + item.id}
               className="il-card il-hover-lift group flex h-full flex-col items-center gap-3 p-6 md:p-7 text-center"
             >
               <span className="flex w-14 h-14 md:w-16 md:h-16 shrink-0 items-center justify-center rounded-2xl bg-[#003893]/10 text-[#003893] transition-colors duration-300 group-hover:bg-[#003893] group-hover:text-white">
@@ -72,53 +64,6 @@ export function SobreNosotrosTeaser({ items = [] }) {
                 {FLECHA_ABAJO}
               </span>
             </a>
-          </Reveal>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* =========================================================
-   SECCIÓN DE DETALLE
-   ========================================================= */
-
-export function SobreNosotrosDetalle({ items = [] }) {
-  if (!items.length) return null;
-
-  return (
-    <section id="sobre-nosotros-detalle" className="w-full il-surface-mesh">
-      <div className="max-w-4xl mx-auto px-4 md:px-6 py-14 md:py-24 space-y-14 md:space-y-24">
-        <Reveal as="div" className="text-center max-w-2xl mx-auto">
-          <span className="inline-block text-xs md:text-sm font-bold uppercase tracking-[0.2em] text-[#003893] mb-2">
-            Sobre IMPULSA LAB
-          </span>
-          <h2 className="text-2xl md:text-3xl font-extrabold font-montserrat text-[#020201] tracking-tight">
-            Quiénes somos, qué hacemos y cuál es nuestro propósito
-          </h2>
-        </Reveal>
-
-        {items.map((item, index) => (
-          <Reveal
-            key={item.id}
-            id={`detalle-${item.id}`}
-            className={`il-detalle-panel il-card scroll-mt-28 md:scroll-mt-32 flex flex-col items-center gap-6 p-6 md:gap-10 md:p-10 ${
-              index % 2 === 1 ? "md:flex-row-reverse" : "md:flex-row"
-            }`}
-          >
-            <span className="flex w-20 h-20 md:w-24 md:h-24 shrink-0 items-center justify-center rounded-3xl bg-[#003893]/10 text-[#003893]">
-              {ICONOS[item.id]}
-            </span>
-
-            <div className="text-center md:text-left">
-              <h3 className="font-montserrat font-bold text-xl md:text-2xl text-[#020201] mb-3">
-                {item.titulo}
-              </h3>
-
-              <p className="text-stone-600 text-sm md:text-base leading-relaxed">
-                {item.texto}
-              </p>
-            </div>
           </Reveal>
         ))}
       </div>

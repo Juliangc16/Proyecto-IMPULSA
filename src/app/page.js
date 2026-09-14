@@ -1,13 +1,15 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@lib/client";
+import { createClient } from "@/../libreria/supabase/client";
 import TarjetasCarousel from "@/components/home/TarjetasCarousel";
 import VideoEmprendedores from "@/components/home/VideoEmprendedores";
 import PanelAcademico from "@/components/home/PanelAcademico";
 import NoticiasHome from "@/components/home/NoticiasHome";
-import { SobreNosotrosTeaser, SobreNosotrosDetalle } from "@/components/home/SobreNosotros";
+import { SobreNosotrosTeaser } from "@/components/home/SobreNosotros";
+import { SOBRE_NOSOTROS } from "@/lib/sobreNosotrosData";
 
 const URL_CUADRO_AMARILLO = "/que-clase-de-emprendedor-soy";
 const URL_CUADRO_AZUL = "https://forms.cloud.microsoft/r/zz5CaG15Kq";
@@ -30,55 +32,12 @@ export default function Home() {
     { texto: "No todos los que trabajan duro son recompensados, pero todos los que son alguien han trabajado duro.", autor: "Genji Kamogawa" }
   ];
 
-  const infoDesplegable = [
-    {
-      id: "quienes",
-      label: "¿Quiénes somos?",
-      titulo: "Quiénes somos",
-      resumen: "El laboratorio de emprendimiento universitario de IMPULSA LAB.",
-      texto: (
-        <>
-          <strong>IMPULSA LAB</strong> es el laboratorio de emprendimiento universitario diseñado
-          para trasformar el talento, creatividad y el potencial de los estudiantes en
-          emprendimientos sostenibles y de alto impacto. Somos un espacio de inovacion,
-          aprendizaje y colaboracion donde atraves de una metologia estructura, mentorias
-          especializadas, brindamos a los estudiantes las herramientas necesarias para diseñar,
-          validar, lanzar y escalar sus proyectos emprendedores. En IMPULSA LAB creemos que cada
-          idea tiene el potencial de generar valor, impacto social y desarrollo economico cuando
-          recibe el apoyo adecuado.
-        </>
-      ),
-    },
-    {
-      id: "hacemos",
-      label: "¿Qué hacemos?",
-      titulo: "Que hacemos",
-      resumen: "Acompañamos tu idea desde el primer paso hasta un negocio real.",
-      texto: (
-        <>
-          En <strong>IMPULSA LAB</strong> impulsamos el desarrollo de emprendedores desde la etapa
-          de la idea hasta la consolidación de negocios reales, acompañamos a los estudiantes en
-          todo su proceso emprendedor mediante programas de formación, talleres prácticos,
-          mentorias perosonalizadas, vlaidacion de modelos de negocio, desarrollo de prototipos,
-          conexión con aliados estratégicos y espacios de networking.
-        </>
-      ),
-    },
-    {
-      id: "proposito",
-      label: "¿Cuál es nuestro propósito?",
-      titulo: "¿Cual es nuestro proposito?",
-      resumen: "Formar una nueva generación de emprendedores exitosos y sostenibles.",
-      texto: (
-        <>
-          Nuestro proposito es formar una nueva generacion de emprendedores capaces de transformar
-          sus ideas en empresas exitosas, innovadoras y sostenibles, buscamos despertar el espíritu
-          emprendedor de los estudiantes, fortalecer sus competencias y proporcionales el
-          acompañamiento necesario para que conviertan el conocimiento en oportunidades de negocio.
-        </>
-      ),
-    },
-  ];
+  const infoDesplegable = SOBRE_NOSOTROS.map((item) => ({
+    id: item.id,
+    label: `¿${item.titulo}?`,
+    titulo: item.titulo,
+    resumen: item.resumen,
+  }));
 
   const tarjetas = [
     {
@@ -147,7 +106,9 @@ export default function Home() {
       setUsuario(session?.user ?? null);
     });
 
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      listener?.subscription?.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -210,7 +171,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-stone-50 text-[#020201] font-inter flex flex-col pt-20 md:pt-24">
-
       <div className="hidden pointer-events-none opacity-0 select-none" data-creator="julian-magick">
         IMPULSA LAB 2026 - Todos los derechos reservados.
       </div>
@@ -226,7 +186,8 @@ export default function Home() {
           style={{ backgroundColor: "#ffffff" }}
         >
           <div className="flex items-center shrink-0">
-            <a href="https://universitariadecolombia.edu.co/"
+            <a 
+              href="https://universitariadecolombia.edu.co/"
               target="_blank"
               rel="noreferrer"
               className="transition hover:opacity-80 flex items-center shrink-0 -mt-[10px]"
@@ -285,7 +246,10 @@ export default function Home() {
                         </p>
                       </>
                     ) : (
-                      <a target="_blank" rel="noreferrer" href={URL_CUADRO_AZUL}
+                      <a 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        href={URL_CUADRO_AZUL}
                         className="block text-sm font-semibold text-[#003893] hover:underline"
                       >
                         ¿Quieres crear una idea de negocio?
@@ -331,7 +295,6 @@ export default function Home() {
           <div className="w-full h-[4.5px] bg-[#003893]"></div>
           <div className="w-full h-[4.5px] bg-[#CE1126]"></div>
         </div>
-
       </div>
 
       <main className="flex-1 flex flex-col items-center px-6 py-8 gap-10">
@@ -366,9 +329,7 @@ export default function Home() {
         </div>
       </section>
 
-      <SobreNosotrosDetalle items={infoDesplegable} />
-
-<hr className="w-[98%] mx-auto my-6"/>
+      <hr className="w-[98%] mx-auto my-6"/>
       <footer className="mt-auto border-t border-stone-200/50 bg-white">
         <div className="px-6 py-8 text-center">
           <h4 className="font-montserrat font-bold text-base text-[#020201] mb-2">

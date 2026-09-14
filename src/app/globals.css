@@ -851,3 +851,187 @@ body {
     transition: none;
   }
 }
+/* =========================================================
+   PÁGINA /nosotros — TRANSICIONES CINEMATOGRÁFICAS
+   (inspirado en el "wipe" de Santa Monica Studio, con
+   identidad propia de IMPULSA LAB)
+   ========================================================= */
+
+.il-nos-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.il-nos-eyebrow-diamantes {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.il-nos-eyebrow-diamantes span {
+  width: 6px;
+  height: 6px;
+  transform: rotate(45deg);
+  display: inline-block;
+  border: 1.4px solid currentColor;
+}
+
+.il-nos-eyebrow-linea {
+  flex: 1 1 auto;
+  height: 1px;
+  min-width: 28px;
+  background: currentColor;
+  opacity: 0.5;
+  position: relative;
+}
+
+.il-nos-eyebrow-linea::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-top: 1.4px solid currentColor;
+  border-right: 1.4px solid currentColor;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* Bloque de color asimétrico detrás de las imágenes */
+.il-nos-bloque {
+  position: absolute;
+  inset: 0;
+  border-radius: 2.5rem 0 2.5rem 2.5rem;
+  transform: translate(18px, 18px);
+  z-index: 0;
+}
+
+.il-nos-panel:nth-child(even) .il-nos-bloque,
+.il-nos-imagen-derecha .il-nos-bloque {
+  border-radius: 0 2.5rem 2.5rem 2.5rem;
+  transform: translate(-18px, 18px);
+}
+
+.il-nos-bloque-amarillo { background: var(--il-yellow); }
+.il-nos-bloque-azul { background: var(--il-blue); }
+.il-nos-bloque-rojo { background: var(--il-red); }
+
+.il-nos-imagen-marco {
+  position: relative;
+  z-index: 1;
+  border-radius: 2.5rem 0 2.5rem 2.5rem;
+  overflow: hidden;
+  box-shadow: 0 30px 60px -25px rgba(2, 2, 1, 0.35);
+}
+
+.il-nos-imagen-derecha .il-nos-imagen-marco {
+  border-radius: 0 2.5rem 2.5rem 2.5rem;
+}
+
+/* Efecto "cortina" (wipe) al revelar imágenes al hacer scroll */
+@media (prefers-reduced-motion: no-preference) {
+  .il-nos-wipe {
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 1s var(--il-ease-out);
+  }
+
+  .il-nos-wipe.il-nos-wipe-derecha {
+    clip-path: inset(0 0 0 100%);
+  }
+
+  .il-nos-wipe.il-nos-visible {
+    clip-path: inset(0 0 0 0);
+  }
+
+  .il-nos-bloque {
+    transition:
+      transform 1s var(--il-ease-out) 0.1s,
+      opacity 1s var(--il-ease-out) 0.1s;
+    opacity: 0;
+  }
+
+  .il-nos-panel.il-nos-visible .il-nos-bloque {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .il-nos-wipe {
+    clip-path: none;
+  }
+}
+
+/* Textura de fondo sutil (puntos), distinta al mesh radial ya usado */
+.il-nos-textura {
+  background-image: radial-gradient(rgba(2, 2, 1, 0.08) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Barra de progreso de lectura, fija arriba de todo */
+.il-nos-progreso {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  z-index: 70;
+  background: linear-gradient(90deg, var(--il-yellow), var(--il-blue), var(--il-red));
+  transition: width 0.1s linear;
+}
+
+/* Carrusel horizontal de "Quiénes somos / Qué hacemos / Propósito" */
+.il-nos-carrusel {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.il-nos-carrusel::-webkit-scrollbar {
+  display: none;
+}
+
+/* Indicador lateral de sección (puntos de navegación) */
+.il-nos-indice {
+  position: fixed;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.il-nos-indice button {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(2, 2, 1, 0.25);
+  background: transparent;
+  transition:
+    background-color 0.3s var(--il-ease-out),
+    border-color 0.3s var(--il-ease-out),
+    transform 0.3s var(--il-ease-spring);
+}
+
+.il-nos-indice button.il-nos-indice-activo {
+  background: var(--il-blue);
+  border-color: var(--il-blue);
+  transform: scale(1.3);
+}
+
+/* Título gigante partido en dos tonos, estilo editorial */
+.il-nos-titulo-gigante {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
