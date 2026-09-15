@@ -79,18 +79,18 @@ export default function PanelCinematico({ item, index, registrarRef }) {
         if (registrarRef) registrarRef(item.id, nodo);
       }}
       id={`detalle-${item.id}`}
-      className={`il-nos-panel il-nos-textura relative flex h-[78vh] w-full shrink-0 snap-center items-center justify-center overflow-hidden px-6 py-10 md:h-[82vh] md:px-12 ${
+      className={`il-nos-panel il-nos-textura relative flex h-screen w-screen shrink-0 snap-center items-center justify-center overflow-hidden px-6 pb-12 pt-40 md:px-12 md:pb-14 md:pt-44 ${
         visible ? "il-nos-visible" : ""
       }`}
     >
       <div
-        className={`il-scroll-fina mx-auto flex max-h-full w-full max-w-6xl flex-col items-center gap-10 overflow-y-auto md:gap-16 ${
+        className={`mx-auto flex h-full w-full max-w-6xl flex-col items-center justify-center gap-8 md:gap-14 ${
           imagenDerecha ? "md:flex-row-reverse" : "md:flex-row"
         }`}
       >
         {/* IMAGEN */}
         <div
-          className={`relative w-full max-w-md shrink-0 ${
+          className={`relative w-full max-w-[220px] shrink-0 md:max-w-[300px] ${
             imagenDerecha ? "il-nos-imagen-derecha" : ""
           }`}
         >
@@ -130,17 +130,17 @@ export default function PanelCinematico({ item, index, registrarRef }) {
         >
           <Eyebrow texto={item.eyebrow} color={item.color} />
 
-          <h2 className="il-nos-titulo-gigante mt-4 text-4xl text-[#020201] md:text-6xl">
+          <h2 className="il-nos-titulo-gigante mt-3 text-3xl text-[#020201] md:text-5xl">
             <span className="block">{item.tituloPartido[0]}</span>
             <span className={COLOR_TEXTO[item.color]}>{item.tituloPartido[1]}</span>
           </h2>
 
-          <p className="mt-6 max-w-xl text-base leading-relaxed text-stone-600 md:text-lg">
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-stone-600 md:text-base">
             {item.texto}
           </p>
 
           <p
-            className={`mt-6 max-w-xl border-l-4 pl-4 text-left font-montserrat text-lg font-semibold italic leading-snug md:text-xl ${COLOR_TEXTO[item.color]}`}
+            className={`mt-4 max-w-xl border-l-4 pl-4 text-left font-montserrat text-base font-semibold italic leading-snug md:text-lg ${COLOR_TEXTO[item.color]}`}
             style={{ borderColor: "currentColor" }}
           >
             "{item.destacado}"

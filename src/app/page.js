@@ -66,7 +66,7 @@ export default function Home() {
     },
     {
       href: URL_CUADRO_ROJO,
-      img: "imagenes/noticias.jpeg",
+      img: "imagenes/Eventos.jpeg",
       alt: "Eventos IMPULSA LAB",
       badgeBg: "bg-[#CE1126]",
       badgeText: "text-white",

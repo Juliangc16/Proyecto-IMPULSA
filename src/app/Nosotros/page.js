@@ -78,6 +78,23 @@ export default function NosotrosPage() {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-stone-50 text-[#020201] font-inter">
+      {/* Oculta todas las barras de desplazamiento de esta página
+          (la de abajo y las internas de cada sección), manteniendo
+          el desplazamiento funcionando con rueda, trackpad y swipe. */}
+      <style jsx global>{`
+        .il-nos-carrusel,
+        .il-nos-carrusel * {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .il-nos-carrusel::-webkit-scrollbar,
+        .il-nos-carrusel *::-webkit-scrollbar {
+          display: none;
+          width: 0;
+          height: 0;
+        }
+      `}</style>
+
       <div className="il-nos-progreso" style={{ width: `${progreso}%` }} />
 
       <header
@@ -133,7 +150,7 @@ export default function NosotrosPage() {
         className="il-nos-carrusel flex h-screen w-screen snap-x snap-mandatory overflow-x-auto"
       >
         {/* HERO */}
-        <section className="il-nos-textura relative flex h-screen w-screen shrink-0 snap-center flex-col items-center justify-center overflow-hidden px-6 pt-28 text-center md:pt-24">
+        <section className="il-nos-textura relative flex h-screen w-screen shrink-0 snap-center flex-col items-center justify-center overflow-hidden px-6 pb-12 pt-40 text-center md:pt-44">
           <div
             className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full opacity-20 md:h-96 md:w-96"
             style={{ background: "#FCC21B", filter: "blur(10px)" }}
@@ -181,7 +198,7 @@ export default function NosotrosPage() {
         ))}
 
         {/* CTA + PIE DE PÁGINA, todo en el último "slide" */}
-        <section className="il-surface-mesh flex h-screen w-screen shrink-0 snap-center flex-col items-center justify-center px-6 pt-24 text-center md:pt-20">
+        <section className="il-surface-mesh flex h-screen w-screen shrink-0 snap-center flex-col items-center justify-center px-6 pb-12 pt-40 text-center md:pt-44">
           <Reveal as="div" className="mx-auto max-w-2xl">
             <h2 className="text-3xl font-extrabold font-montserrat tracking-tight text-[#020201] md:text-4xl">
               ¿Listo para convertir tu idea en un proyecto real?
@@ -200,7 +217,10 @@ export default function NosotrosPage() {
               >
                 Mi idea comienza aquí
               </a>
-              <Link href="/Eventos" className="il-btn il-btn-outline w-full sm:w-auto">
+              <Link
+                href="/Eventos"
+                className="il-btn w-full border-2 border-[#FCC21B] bg-[#FCC21B] text-[#020201] shadow-md transition-colors hover:bg-[#ffd451] sm:w-auto"
+              >
                 Ver nuestros eventos
               </Link>
             </div>
