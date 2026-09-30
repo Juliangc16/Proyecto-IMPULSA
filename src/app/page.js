@@ -17,18 +17,17 @@ const URL_CUADRO_AZUL = "https://forms.cloud.microsoft/r/zz5CaG15Kq";
 const URL_CUADRO_ROJO = "/Eventos";
 
 // Menú superior del home: no lleva a ninguna página, solo despliega información.
-// Cambia los textos de "enlaces" cuando tengas el contenido real.
+// "Ferias" se carga desde Supabase; en las demás cambia los textos de "enlaces".
 const MENU_SUPERIOR = [
   {
     id: "ferias",
     label: "Ferias",
-    enlaces: [
-      { titulo: "Próximamente", descripcion: "Aquí encontrarás información sobre las ferias" },
-    ],
+    requiereSesion: true,
   },
   {
     id: "mi-proceso",
     label: "Mi proceso",
+    requiereSesion: true,
     enlaces: [
       { titulo: "Próximamente", descripcion: "Aquí podrás ver el avance de tu proceso" },
     ],
@@ -244,7 +243,7 @@ export default function Home() {
             </div>
           </div>
 
-          <MenuSuperior items={MENU_SUPERIOR} />
+          <MenuSuperior items={MENU_SUPERIOR} usuario={usuario} />
 
           {usuario ? (
             <div className="relative shrink-0" ref={menuUsuarioRef}>
