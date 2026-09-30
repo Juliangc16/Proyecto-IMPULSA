@@ -8,12 +8,39 @@ import TarjetasCarousel from "@/components/home/TarjetasCarousel";
 import VideoEmprendedores from "@/components/home/VideoEmprendedores";
 import PanelAcademico from "@/components/home/PanelAcademico";
 import NoticiasHome from "@/components/home/NoticiasHome";
+import MenuSuperior from "@/components/home/menusuperior";
 import { SobreNosotrosTeaser } from "@/components/home/SobreNosotros";
 import { SOBRE_NOSOTROS } from "@/lib/sobreNosotrosData";
 
 const URL_CUADRO_AMARILLO = "/que-clase-de-emprendedor-soy";
 const URL_CUADRO_AZUL = "https://forms.cloud.microsoft/r/zz5CaG15Kq";
 const URL_CUADRO_ROJO = "/Eventos";
+
+// Menú superior del home: no lleva a ninguna página, solo despliega información.
+// Cambia los textos de "enlaces" cuando tengas el contenido real.
+const MENU_SUPERIOR = [
+  {
+    id: "ferias",
+    label: "Ferias",
+    enlaces: [
+      { titulo: "Próximamente", descripcion: "Aquí encontrarás información sobre las ferias" },
+    ],
+  },
+  {
+    id: "mi-proceso",
+    label: "Mi proceso",
+    enlaces: [
+      { titulo: "Próximamente", descripcion: "Aquí podrás ver el avance de tu proceso" },
+    ],
+  },
+  {
+    id: "tienda-digital",
+    label: "Tienda digital",
+    enlaces: [
+      { titulo: "Próximamente", descripcion: "Aquí encontrarás la tienda digital" },
+    ],
+  },
+];
 
 export default function Home() {
   const router = useRouter();
@@ -216,6 +243,8 @@ export default function Home() {
               />
             </div>
           </div>
+
+          <MenuSuperior items={MENU_SUPERIOR} />
 
           {usuario ? (
             <div className="relative shrink-0" ref={menuUsuarioRef}>

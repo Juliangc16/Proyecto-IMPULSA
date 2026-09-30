@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@lib/client";
@@ -7,9 +7,7 @@ import { esDirectorOAdministrador } from "@/lib/roles";
 const SECCION_VIDEO = "nuestros_emprendedores";
 
 // Extrae el ID de video de YouTube sin importar el formato del link:
-// watch?v=, youtu.be/, shorts/, embed/ o live/. Esto es lo que faltaba
-// para que los YouTube Shorts funcionaran (no era un problema de la
-// base de datos, sino que el link de un Short no se reconocía aquí).
+// watch?v=, youtu.be/, shorts/, embed/ o live/.
 function obtenerIdYoutube(url) {
   if (!url) return null;
 
@@ -60,9 +58,12 @@ function esVideoDirecto(url) {
 }
 
 export default function VideoEmprendedores({ usuario }) {
-  const [video, setVideo] = useState(null);
+  const [videos, setVideos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [indice, setIndice] = useState(0);
+
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [tituloInput, setTituloInput] = useState("");
   const [urlInput, setUrlInput] = useState("");
   const [anchoInput, setAnchoInput] = useState(640);
   const [altoInput, setAltoInput] = useState(360);
@@ -72,23 +73,21 @@ export default function VideoEmprendedores({ usuario }) {
   const panelRef = useRef(null);
   const puedeAdministrar = esDirectorOAdministrador(usuario);
 
-  useEffect(() => {
+  const cargarVideos = async () => {
+    setCargando(true);
     const supabase = createClient();
-
-    supabase
+    const { data } = await supabase
       .from("videos_home")
       .select("*")
       .eq("seccion", SECCION_VIDEO)
-      .maybeSingle()
-      .then(({ data }) => {
-        setVideo(data ?? null);
-        if (data) {
-          setUrlInput(data.url);
-          setAnchoInput(data.ancho);
-          setAltoInput(data.alto);
-        }
-        setCargando(false);
-      });
+      .order("creado_en", { ascending: false });
+
+    setVideos(data ?? []);
+    setCargando(false);
+  };
+
+  useEffect(() => {
+    cargarVideos();
   }, []);
 
   useEffect(() => {
@@ -100,6 +99,14 @@ export default function VideoEmprendedores({ usuario }) {
     document.addEventListener("mousedown", manejarClicFuera);
     return () => document.removeEventListener("mousedown", manejarClicFuera);
   }, []);
+
+  const limpiarFormulario = () => {
+    setTituloInput("");
+    setUrlInput("");
+    setAnchoInput(640);
+    setAltoInput(360);
+    setError(null);
+  };
 
   const manejarGuardar = async (evento) => {
     evento.preventDefault();
@@ -116,46 +123,51 @@ export default function VideoEmprendedores({ usuario }) {
     setGuardando(true);
     const supabase = createClient();
 
-    const { data, error: errorGuardado } = await supabase
-      .from("videos_home")
-      .upsert(
-        {
-          seccion: SECCION_VIDEO,
-          url: urlInput.trim(),
-          ancho,
-          alto,
-          actualizado_por: usuario?.id ?? null,
-          actualizado_en: new Date().toISOString(),
-        },
-        { onConflict: "seccion" }
-      )
-      .select()
-      .single();
+    // Siempre insertamos un video NUEVO (nunca reemplazamos uno existente),
+    // así se pueden acumular tantos videos como se quiera en esta sección.
+    const { error: errorGuardado } = await supabase.from("videos_home").insert({
+      seccion: SECCION_VIDEO,
+      titulo: tituloInput.trim() || null,
+      url: urlInput.trim(),
+      ancho,
+      alto,
+      actualizado_por: usuario?.id ?? null,
+      actualizado_en: new Date().toISOString(),
+    });
 
     setGuardando(false);
 
     if (errorGuardado) {
-      setError("No se pudo guardar el video. Inténtalo de nuevo.");
+      console.error("Error al guardar video:", errorGuardado);
+      setError(
+        `No se pudo guardar el video: ${errorGuardado.message ?? "error desconocido"}`
+      );
       return;
     }
 
-    setVideo(data);
+    limpiarFormulario();
     setMostrarFormulario(false);
+    await cargarVideos();
+    setIndice(0);
   };
 
-  const manejarQuitar = async () => {
-    setGuardando(true);
+  const manejarEliminar = async (video) => {
+    if (!window.confirm("¿Eliminar este video de la sección?")) return;
+
     const supabase = createClient();
-    await supabase.from("videos_home").delete().eq("seccion", SECCION_VIDEO);
-    setGuardando(false);
-    setVideo(null);
-    setUrlInput("");
-    setMostrarFormulario(false);
+    await supabase.from("videos_home").delete().eq("id", video.id);
+    setIndice(0);
+    await cargarVideos();
   };
 
   if (cargando) return null;
 
-  const urlEmbed = video ? obtenerUrlEmbed(video.url) : null;
+  const total = videos.length;
+  const videoActual = total > 0 ? videos[indice] : null;
+  const urlEmbed = videoActual ? obtenerUrlEmbed(videoActual.url) : null;
+
+  const anterior = () => setIndice((i) => (i - 1 + total) % total);
+  const siguiente = () => setIndice((i) => (i + 1) % total);
 
   return (
     <div className="flex flex-col items-center gap-6">
@@ -167,8 +179,11 @@ export default function VideoEmprendedores({ usuario }) {
         {puedeAdministrar && (
           <button
             type="button"
-            onClick={() => setMostrarFormulario((v) => !v)}
-            title={video ? "Cambiar video" : "Agregar video"}
+            onClick={() => {
+              limpiarFormulario();
+              setMostrarFormulario((v) => !v);
+            }}
+            title="Agregar video"
             className="w-7 h-7 rounded-full bg-[#003893] text-white text-lg leading-none flex items-center justify-center hover:bg-[#003893]/90 transition-colors shrink-0"
           >
             +
@@ -178,10 +193,23 @@ export default function VideoEmprendedores({ usuario }) {
         {mostrarFormulario && (
           <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-80 bg-white rounded-2xl shadow-xl border border-black/10 p-4 z-50 text-left">
             <p className="font-montserrat font-bold text-sm text-[#020201] mb-3">
-              {video ? "Cambiar video" : "Agregar video"}
+              Agregar video
             </p>
 
             <form onSubmit={manejarGuardar} className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-stone-500 mb-1">
+                  Título (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={tituloInput}
+                  onChange={(e) => setTituloInput(e.target.value)}
+                  placeholder="Ej. Emprendimiento de María"
+                  className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-[#003893]"
+                />
+              </div>
+
               <div>
                 <label className="block text-xs font-medium text-stone-500 mb-1">
                   Link del video (YouTube, Vimeo o .mp4)
@@ -194,9 +222,6 @@ export default function VideoEmprendedores({ usuario }) {
                     const valor = e.target.value;
                     setUrlInput(valor);
 
-                    // Si es un Short (formato vertical) y el usuario no ha
-                    // tocado las medidas todavía, sugerimos un tamaño
-                    // vertical automáticamente para que se vea bien.
                     if (
                       esShortDeYoutube(valor) &&
                       Number(anchoInput) === 640 &&
@@ -253,43 +278,102 @@ export default function VideoEmprendedores({ usuario }) {
                   disabled={guardando}
                   className="flex-1 rounded-lg bg-[#003893] px-3 py-2 text-white text-sm font-semibold hover:bg-[#003893]/90 disabled:opacity-60"
                 >
-                  {guardando ? "Guardando..." : "Guardar"}
+                  {guardando ? "Guardando..." : "Agregar video"}
                 </button>
-
-                {video && (
-                  <button
-                    type="button"
-                    onClick={manejarQuitar}
-                    disabled={guardando}
-                    className="rounded-lg px-3 py-2 text-sm font-medium text-[#CE1126] hover:bg-[#CE1126]/5"
-                  >
-                    Quitar
-                  </button>
-                )}
               </div>
             </form>
           </div>
         )}
       </div>
 
-      {video && urlEmbed && (
-        <div className="flex justify-center w-full px-4">
-          {esVideoDirecto(video.url) ? (
-            <video
-              src={video.url}
-              controls
-              style={{ width: `${video.ancho}px`, height: `${video.alto}px`, maxWidth: "100%" }}
-              className="rounded-xl shadow-md bg-black"
-            />
-          ) : (
-            <iframe
-              src={urlEmbed}
-              style={{ width: `${video.ancho}px`, height: `${video.alto}px`, maxWidth: "100%" }}
-              className="rounded-xl shadow-md"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              title="Video de IMPULSA LAB"
-            />
+      {total === 0 && (
+        <p className="text-stone-500 text-sm">Todavía no hay videos en esta sección.</p>
+      )}
+
+      {total > 0 && (
+        <div className="relative flex flex-col items-center w-full">
+          <div className="relative flex justify-center w-full px-4">
+            {total > 1 && (
+              <button
+                type="button"
+                onClick={anterior}
+                aria-label="Video anterior"
+                className="absolute left-0 md:-left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-stone-200 shadow-lg flex items-center justify-center text-stone-500 hover:text-[#CE1126] hover:border-[#CE1126] hover:scale-105 transition-all"
+              >
+                <span className="text-2xl leading-none">‹</span>
+              </button>
+            )}
+
+            <div className="flex flex-col items-center gap-2">
+              {videoActual.titulo && (
+                <p className="font-montserrat font-semibold text-sm text-stone-600">
+                  {videoActual.titulo}
+                </p>
+              )}
+
+              {esVideoDirecto(videoActual.url) ? (
+                <video
+                  src={videoActual.url}
+                  controls
+                  style={{
+                    width: `${videoActual.ancho}px`,
+                    height: `${videoActual.alto}px`,
+                    maxWidth: "100%",
+                  }}
+                  className="rounded-xl shadow-md bg-black"
+                />
+              ) : (
+                <iframe
+                  src={urlEmbed}
+                  style={{
+                    width: `${videoActual.ancho}px`,
+                    height: `${videoActual.alto}px`,
+                    maxWidth: "100%",
+                  }}
+                  className="rounded-xl shadow-md"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="Video de IMPULSA LAB"
+                />
+              )}
+
+              {puedeAdministrar && (
+                <button
+                  type="button"
+                  onClick={() => manejarEliminar(videoActual)}
+                  className="text-xs font-semibold text-[#CE1126] hover:underline"
+                >
+                  Eliminar este video
+                </button>
+              )}
+            </div>
+
+            {total > 1 && (
+              <button
+                type="button"
+                onClick={siguiente}
+                aria-label="Siguiente video"
+                className="absolute right-0 md:-right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-stone-200 shadow-lg flex items-center justify-center text-stone-500 hover:text-[#CE1126] hover:border-[#CE1126] hover:scale-105 transition-all"
+              >
+                <span className="text-2xl leading-none">›</span>
+              </button>
+            )}
+          </div>
+
+          {total > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-4 flex-wrap max-w-md">
+              {videos.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  aria-label={`Ir al video ${i + 1}`}
+                  onClick={() => setIndice(i)}
+                  className={`h-2.5 rounded-full transition-all duration-300 ${
+                    i === indice ? "w-6 bg-[#CE1126]" : "w-2.5 bg-stone-300"
+                  }`}
+                />
+              ))}
+            </div>
           )}
         </div>
       )}

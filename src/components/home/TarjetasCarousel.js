@@ -56,7 +56,7 @@ export default function TarjetasCarousel({ tarjetas = [], onClickTarjeta }) {
                 .join(" ");
 
               const clasesBadge = [
-                "px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider",
+                "max-w-full px-3 py-1.5 rounded-2xl text-[11px] md:text-xs font-bold uppercase tracking-wide leading-tight text-center break-words",
                 t.badgeBg || "",
                 t.badgeText || "",
               ]
@@ -87,11 +87,7 @@ export default function TarjetasCarousel({ tarjetas = [], onClickTarjeta }) {
 
                   {/* Información */}
                   <div className="mt-4 flex flex-col items-center gap-2 w-full pt-3 border-t border-black/5">
-                    <span className={clasesBadge}>Destacado</span>
-
-                    <h3 className="font-montserrat font-bold text-sm text-[#020201] leading-tight">
-                      {t.title}
-                    </h3>
+                    <span className={clasesBadge}>{t.title}</span>
 
                     <p className="text-stone-600 text-xs leading-relaxed font-inter">{t.desc}</p>
                   </div>

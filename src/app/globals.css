@@ -18,19 +18,89 @@
   --il-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* ===== CAMBIAR FONDO AQUÍ ===== */
+:root {
+  --fondo-actual: url("/imagenes/fondo_1.jpg");
+  --escala-plumas: 0.85; /* tamaño de las plumas: 1 = grande, 0.8 = más pequeño, 0.7 = aún más */
+}
+
+html {
+  background-color: #f3f3eb;
+  /* ancho de la imagen completa: se ajusta a la pantalla y a la escala elegida */
+  --fw: calc(min(100vw, 145.87vh) * var(--escala-plumas));
+}
+
 body {
-  background: var(--background);
+  background: transparent;
   color: var(--foreground);
 }
 
-::selection {
-  background: rgba(0, 56, 147, 0.18);
-  color: var(--il-dark);
+/* FONDO DE PLUMAS
+   La imagen se reparte en 3 recuadros, uno por esquina (arriba-izquierda, arriba-derecha
+   y abajo-izquierda; abajo-derecha queda libre para el ave). Cada esquina se ve completa,
+   sin recortes y sin deformarse, en cualquier tamaño de pantalla. El centro queda crema. */
+html::before,
+html::after,
+body::before {
+  content: "";
+  position: fixed;
+  z-index: -2;
+  pointer-events: none;
+  width: calc(var(--fw) / 2);
+  height: calc(var(--fw) * 0.36);
+  background-image: var(--fondo-actual);
+  background-repeat: no-repeat;
+  background-size: var(--fw) auto;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
+html::before {
+  top: 0;
+  left: 0;
+  background-position: left top;
+  -webkit-mask-image: linear-gradient(to right, #000 85%, transparent), linear-gradient(to bottom, #000 85%, transparent);
+  mask-image: linear-gradient(to right, #000 85%, transparent), linear-gradient(to bottom, #000 85%, transparent);
+}
+
+html::after {
+  top: 0;
+  right: 0;
+  background-position: right top;
+  -webkit-mask-image: linear-gradient(to left, #000 85%, transparent), linear-gradient(to bottom, #000 85%, transparent);
+  mask-image: linear-gradient(to left, #000 85%, transparent), linear-gradient(to bottom, #000 85%, transparent);
+}
+
+body::before {
+  bottom: 0;
+  left: 0;
+  background-position: left bottom;
+  -webkit-mask-image: linear-gradient(to right, #000 85%, transparent), linear-gradient(to top, #000 85%, transparent);
+  mask-image: linear-gradient(to right, #000 85%, transparent), linear-gradient(to top, #000 85%, transparent);
+}
+
+/* ===== AVE DE IMPULSA: fija en la esquina inferior derecha de TODAS las páginas =====
+   - Se queda quieta mientras haces scroll (position: fixed) y queda detrás del contenido.
+   - Volteada (scaleX(-1)) para que mire hacia el centro de la página.
+   - Tamaño: cambia el clamp(mínimo, relativo, máximo) de "width".
+   - En pantallas menores a 1100px se oculta para no estorbar. */
+body::after {
+  content: "";
+  position: fixed;
+  right: -8vw; /* posición horizontal: más negativo = más a la derecha (0 = pegada al borde) */
+  bottom: 0;
+  z-index: -1;
+  pointer-events: none;
+  width: clamp(340px, 38vw, 800px);
+  aspect-ratio: 577 / 433;
+  background: url("/imagenes/colombianita.png") center bottom / contain no-repeat;
+  transform: scaleX(-1);
+  filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.22));
+}
+
+@media (max-width: 1099px) {
+  body::after {
+    display: none;
   }
 }
 
@@ -1034,4 +1104,162 @@ body {
   letter-spacing: -0.02em;
   line-height: 0.95;
   text-transform: uppercase;
+}
+
+/* =========================================================================
+   FONDO GLOBAL + INTEGRACIÓN VISUAL (plumas de guacamaya)
+   Este bloque va al FINAL de globals.css. El fondo se cambia arriba
+   del todo, en --fondo-actual (dentro de :root).
+   ========================================================================= */
+
+/* Las páginas dejan de pintar su propio fondo sólido */
+.min-h-screen.bg-stone-50,
+.h-screen.bg-stone-50 {
+  background-color: transparent;
+}
+
+.il-surface-mesh {
+  background-color: transparent;
+  background-image: none;
+}
+
+/* Tarjetas */
+.il-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow:
+    0 1px 2px rgba(2, 2, 1, 0.06),
+    0 14px 34px -14px rgba(0, 30, 90, 0.32);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .il-card:hover {
+    box-shadow:
+      0 2px 4px rgba(2, 2, 1, 0.06),
+      0 28px 50px -18px rgba(0, 56, 147, 0.42);
+  }
+}
+
+/* Tarjetas del carrusel (vidrio lechoso con tinte de su color) */
+a.group.rounded-2xl.border-2 {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.72));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 14px 34px -14px rgba(2, 2, 1, 0.38);
+}
+
+a.group.rounded-2xl.border-2.shadow-2xl {
+  box-shadow:
+    0 2px 4px rgba(2, 2, 1, 0.08),
+    0 32px 60px -22px rgba(0, 30, 90, 0.5);
+}
+
+/* Noticias y eventos */
+.il-hover-lift.bg-white {
+  background-color: rgba(255, 255, 255, 0.93);
+  border-color: rgba(206, 17, 38, 0.22);
+  box-shadow:
+    0 1px 2px rgba(2, 2, 1, 0.06),
+    0 16px 36px -16px rgba(206, 17, 38, 0.35);
+}
+
+.il-hover-lift.bg-white:hover {
+  box-shadow:
+    0 2px 4px rgba(2, 2, 1, 0.08),
+    0 30px 56px -20px rgba(206, 17, 38, 0.45);
+}
+
+/* Botones circulares de flechas */
+button.rounded-full.bg-white {
+  box-shadow:
+    0 1px 2px rgba(2, 2, 1, 0.1),
+    0 10px 22px -8px rgba(0, 30, 90, 0.4);
+  transition:
+    transform 0.25s var(--il-ease-out),
+    box-shadow 0.25s var(--il-ease-out),
+    color 0.25s var(--il-ease-out);
+}
+
+button.rounded-full.bg-white:hover {
+  transform: translateY(-50%) scale(1.08);
+  box-shadow:
+    0 2px 4px rgba(2, 2, 1, 0.1),
+    0 16px 30px -8px rgba(0, 30, 90, 0.5);
+}
+
+/* Botones IL: profundidad + brillo superior */
+.il-btn {
+  box-shadow:
+    0 1px 2px rgba(2, 2, 1, 0.12),
+    0 10px 22px -10px rgba(2, 2, 1, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.il-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px rgba(2, 2, 1, 0.12),
+    0 18px 30px -12px rgba(2, 2, 1, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.il-btn-primary {
+  box-shadow:
+    0 1px 2px rgba(0, 30, 90, 0.2),
+    0 12px 26px -10px rgba(0, 56, 147, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.il-btn-accent {
+  box-shadow:
+    0 1px 2px rgba(120, 80, 0, 0.2),
+    0 12px 26px -10px rgba(252, 194, 27, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.il-btn-outline {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+/* Videos: marco blanco + sombra profunda */
+video.rounded-xl,
+iframe.rounded-xl {
+  border-radius: 1rem;
+  box-shadow:
+    0 0 0 4px rgba(255, 255, 255, 0.9),
+    0 0 0 5px rgba(0, 56, 147, 0.2),
+    0 30px 55px -22px rgba(2, 2, 1, 0.6);
+}
+
+/* Imágenes de la página Nosotros */
+.il-nos-imagen-marco {
+  box-shadow:
+    0 0 0 4px rgba(255, 255, 255, 0.85),
+    0 36px 64px -24px rgba(2, 2, 1, 0.5);
+}
+
+/* Secciones de contenido: cabecera fija, pie y tablas del panel */
+footer.bg-white {
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 -12px 30px -18px rgba(2, 2, 1, 0.3);
+}
+
+header.bg-white {
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 28px -16px rgba(2, 2, 1, 0.3);
+}
+
+/* Cuadros de resultados / paneles del diagnóstico */
+.bg-white.rounded-2xl.border.border-stone-200,
+.bg-white.rounded-xl.border.border-stone-200 {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 1px 2px rgba(2, 2, 1, 0.05),
+    0 12px 28px -14px rgba(0, 30, 90, 0.3);
 }
