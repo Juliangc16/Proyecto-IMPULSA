@@ -104,6 +104,14 @@ body::after {
   }
 }
 
+/* En celular las plumas de abajo quedan detrás del texto y lo hacen difícil de leer:
+   se atenúan para que el texto se lea bien. */
+@media (max-width: 767px) {
+  body::before {
+    opacity: 0.35;
+  }
+}
+
 /* =========================================================
    FOCO ACCESIBLE
    ========================================================= */

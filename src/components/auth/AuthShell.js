@@ -1,15 +1,15 @@
 export default function AuthShell({ eyebrow, title, footer, children }) {
   return (
-    <div className="il-auth min-h-screen w-full flex flex-col items-center justify-center px-4 py-10 relative overflow-hidden font-inter">
+    <div className="il-auth min-h-dvh w-full flex flex-col items-center justify-center px-4 py-10 relative overflow-hidden font-inter">
 
       {/* Logos centrados arriba */}
-      <div className="relative flex items-end gap-6 mb-10 md:mb-14 z-20 rounded-2xl bg-white/85 backdrop-blur-md px-6 py-3 shadow-[0_10px_30px_-12px_rgba(0,30,90,0.35)] border border-white/70">
+      <div className="relative flex max-w-full items-end justify-center gap-3 sm:gap-6 mb-8 md:mb-14 z-20 rounded-2xl bg-white/85 backdrop-blur-md px-4 sm:px-6 py-3 shadow-[0_10px_30px_-12px_rgba(0,30,90,0.35)] border border-white/70">
 
         {/* Logo principal — Universitaria de Colombia */}
         <img
           src="/imagenes/universitaria.png"
           alt="Institución Universitaria de Colombia"
-          className="h-11 md:h-12 w-auto object-contain block"
+          className="h-8 sm:h-11 md:h-12 w-auto min-w-0 shrink object-contain block"
         />
 
         {/* Línea divisoria */}
@@ -19,7 +19,7 @@ export default function AuthShell({ eyebrow, title, footer, children }) {
         <img
           src="/imagenes/logoIMPULSALAB.png"
           alt="Impulsa Lab"
-          className="h-11 md:h-12 w-auto object-contain block"
+          className="h-8 sm:h-11 md:h-12 w-auto min-w-0 shrink object-contain block"
         />
       </div>
 

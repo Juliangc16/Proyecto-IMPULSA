@@ -179,7 +179,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 w-screen h-screen bg-white grid place-items-center z-50 p-6 font-inter">
+      <div className="fixed inset-0 w-full h-dvh bg-white grid place-items-center z-50 p-6 font-inter">
         <div className="max-w-2xl w-full text-center space-y-6 flex flex-col items-center justify-center">
           <p className="text-2xl md:text-3xl font-montserrat font-semibold italic text-[#020201] leading-relaxed">
             "{frase.texto}"
@@ -196,49 +196,49 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 text-[#020201] font-inter flex flex-col pt-20 md:pt-24">
+    <div className="min-h-screen bg-stone-50 text-[#020201] font-inter flex flex-col">
       <div className="hidden pointer-events-none opacity-0 select-none" data-creator="julian-magick">
         IMPULSA LAB 2026 - Todos los derechos reservados.
       </div>
 
-      <div 
-        className="fixed top-0 left-0 w-full z-50 shadow-md"
+      <div
+        className="sticky top-0 z-50 w-full shadow-md"
         style={{ backgroundColor: "#ffffff" }}
       >
-        <div className="w-full h-8 md:h-5 bg-white" aria-hidden="true"></div>
+        <div className="w-full h-1 md:h-5 bg-white" aria-hidden="true"></div>
 
-        <header 
-          className="flex items-center justify-between gap-4 px-4 md:px-8 py-3 flex-wrap"
+        <header
+          className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-0.5 px-4 py-2 md:px-8 md:py-3 lg:flex lg:justify-between lg:gap-4"
           style={{ backgroundColor: "#ffffff" }}
         >
-          <div className="flex items-center shrink-0">
+          <div className="col-start-1 row-start-1 flex items-center shrink-0">
             <a 
               href="https://universitariadecolombia.edu.co/"
               target="_blank"
               rel="noreferrer"
-              className="transition hover:opacity-80 flex items-center shrink-0 -mt-[10px]"
+              className="transition hover:opacity-80 flex items-center shrink-0 -mt-[6px] md:-mt-[10px]"
             >
               <img
-                src="imagenes/universitaria.png"
+                src="/imagenes/universitaria.png"
                 alt="Institución Universitaria de Colombia"
-                className="h-[40px] w-auto object-contain"
+                className="h-[26px] w-auto object-contain sm:h-[34px] md:h-[40px]"
               />
             </a>
 
-            <div style={{ width: "20px", minWidth: "20px" }} aria-hidden="true" />
+            <div className="w-2 shrink-0 sm:w-5" aria-hidden="true" />
 
             <div 
-              className="h-7 bg-[#020201] rounded-full shrink-0" 
+              className="h-5 sm:h-7 bg-[#020201] rounded-full shrink-0" 
               style={{ width: "2px", minWidth: "2px" }}
             />
 
-            <div style={{ width: "20px", minWidth: "20px" }} aria-hidden="true" />
+            <div className="w-2 shrink-0 sm:w-5" aria-hidden="true" />
 
             <div className="flex items-center shrink-0">
               <img
-                src="imagenes/logoIMPULSALAB.png"
+                src="/imagenes/logoIMPULSALAB.png"
                 alt="Logo Impulsa Lab"
-                className="h-[40px] w-auto object-contain"
+                className="h-[26px] w-auto object-contain sm:h-[34px] md:h-[40px]"
               />
             </div>
           </div>
@@ -246,10 +246,10 @@ export default function Home() {
           <MenuSuperior items={MENU_SUPERIOR} usuario={usuario} />
 
           {usuario ? (
-            <div className="relative shrink-0" ref={menuUsuarioRef}>
+            <div className="relative col-start-2 row-start-1 min-w-0 justify-self-end" ref={menuUsuarioRef}>
               <button
                 onClick={() => setMostrarTarjetaUsuario((valor) => !valor)}
-                className="text-sm font-semibold text-[#020201] hover:text-[#003893] transition-colors whitespace-nowrap"
+                className="block max-w-full truncate text-xs sm:text-sm font-semibold text-[#020201] hover:text-[#003893] transition-colors"
               >
                 Hola, {usuario.user_metadata?.nombre ?? usuario.email}
               </button>
@@ -297,13 +297,14 @@ export default function Home() {
           ) : (
             <Link
               href="/login"
-              className="flex items-center gap-2 shrink-0 group"
+              aria-label="Iniciar sesión"
+              className="col-start-2 row-start-1 justify-self-end flex items-center gap-1.5 sm:gap-2 shrink-0 group"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="currentColor"
-                className="w-9 h-9 text-stone-400 group-hover:text-[#003893] transition-colors"
+                className="w-7 h-7 sm:w-9 sm:h-9 text-stone-400 group-hover:text-[#003893] transition-colors"
               >
                 <path
                   fillRule="evenodd"
@@ -311,14 +312,14 @@ export default function Home() {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm font-medium text-stone-500 group-hover:text-[#003893] transition-colors whitespace-nowrap">
+              <span className="text-xs sm:text-sm font-medium text-stone-500 group-hover:text-[#003893] transition-colors whitespace-nowrap max-[359px]:hidden">
                 ¿Iniciar sesión?
               </span>
             </Link>
           )}
         </header>
 
-        <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] flex flex-col">
+        <div className="w-full flex flex-col">
           <div className="w-full h-[6px] bg-[#FCC21B]"></div>
           <div className="w-full h-[4.5px] bg-[#003893]"></div>
           <div className="w-full h-[4.5px] bg-[#CE1126]"></div>

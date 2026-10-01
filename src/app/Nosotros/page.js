@@ -77,7 +77,7 @@ export default function NosotrosPage() {
   }, []);
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-stone-50 text-[#020201] font-inter">
+    <div className="h-dvh w-screen overflow-hidden bg-stone-50 text-[#020201] font-inter">
       {/* Oculta todas las barras de desplazamiento de esta página
           (la de abajo y las internas de cada sección), manteniendo
           el desplazamiento funcionando con rueda, trackpad y swipe. */}
@@ -102,7 +102,7 @@ export default function NosotrosPage() {
           conFondo ? "il-glass-header" : "bg-transparent"
         }`}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-8">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 md:gap-4 md:px-8 md:py-3">
           <div className="flex items-center shrink-0">
             <a
               href="https://universitariadecolombia.edu.co/"
@@ -113,28 +113,29 @@ export default function NosotrosPage() {
               <img
                 src="/imagenes/universitaria.png"
                 alt="Institución Universitaria de Colombia"
-                className="h-8 w-auto object-contain md:h-9"
+                className="h-6 w-auto object-contain sm:h-8 md:h-9"
               />
             </a>
 
             <div
-              className="mx-3 h-6 shrink-0 rounded-full bg-[#020201]/70 md:mx-4"
+              className="mx-2 h-5 shrink-0 rounded-full bg-[#020201]/70 sm:mx-3 sm:h-6 md:mx-4"
               style={{ width: "2px" }}
             />
 
             <img
               src="/imagenes/logoIMPULSALAB.png"
               alt="Logo Impulsa Lab"
-              className="h-7 w-auto object-contain md:h-8"
+              className="h-6 w-auto object-contain sm:h-7 md:h-8"
             />
           </div>
 
           <Link
             href="/"
-            className="group flex shrink-0 items-center gap-2 rounded-full border border-[#020201]/15 bg-white/70 px-4 py-2 text-xs font-semibold font-montserrat text-[#020201] transition-colors hover:border-[#003893] hover:text-[#003893] md:text-sm"
+            className="group flex shrink-0 items-center gap-2 rounded-full border border-[#020201]/15 bg-white/70 px-3 py-2 text-xs font-semibold font-montserrat text-[#020201] transition-colors hover:border-[#003893] hover:text-[#003893] sm:px-4 md:text-sm"
           >
             {FLECHA_IZQUIERDA}
-            Volver al inicio
+            <span className="sm:hidden">Inicio</span>
+            <span className="hidden sm:inline">Volver al inicio</span>
           </Link>
         </div>
 
@@ -147,10 +148,10 @@ export default function NosotrosPage() {
 
       <div
         ref={contenedorRef}
-        className="il-nos-carrusel flex h-screen w-screen snap-x snap-mandatory overflow-x-auto"
+        className="il-nos-carrusel flex h-dvh w-screen snap-x snap-mandatory overflow-x-auto"
       >
         {/* HERO */}
-        <section className="il-nos-textura relative flex h-screen w-screen shrink-0 snap-center flex-col items-center justify-center overflow-hidden px-6 pb-12 pt-40 text-center md:pt-44">
+        <section className="il-nos-textura relative flex h-dvh w-screen shrink-0 snap-center flex-col items-center justify-center overflow-hidden px-6 pb-12 pt-32 text-center md:pt-44">
           <div
             className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full opacity-20 md:h-96 md:w-96"
             style={{ background: "#FCC21B", filter: "blur(10px)" }}
@@ -198,7 +199,7 @@ export default function NosotrosPage() {
         ))}
 
         {/* CTA + PIE DE PÁGINA, todo en el último "slide" */}
-        <section className="il-surface-mesh flex h-screen w-screen shrink-0 snap-center flex-col items-center justify-center px-6 pb-12 pt-40 text-center md:pt-44">
+        <section className="il-surface-mesh flex h-dvh w-screen shrink-0 snap-center flex-col items-center justify-center overflow-y-auto px-6 pb-12 pt-28 text-center md:pt-44">
           <Reveal as="div" className="mx-auto max-w-2xl">
             <h2 className="text-3xl font-extrabold font-montserrat tracking-tight text-[#020201] md:text-4xl">
               ¿Listo para convertir tu idea en un proyecto real?

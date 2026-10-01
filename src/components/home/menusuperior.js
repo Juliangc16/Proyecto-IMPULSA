@@ -27,7 +27,7 @@ const FLECHA = (
     fill="none"
     stroke="currentColor"
     strokeWidth="2.2"
-    className="w-3.5 h-3.5"
+    className="h-3 w-3 min-[400px]:h-3.5 min-[400px]:w-3.5"
     aria-hidden="true"
   >
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -68,6 +68,7 @@ export default function MenuSuperior({ items = [], usuario = null }) {
   const [estadoFerias, setEstadoFerias] = useState("cargando"); // cargando | listo | error
   const [formulario, setFormulario] = useState(null); // null | { feria: null | {...} }
   const contenedorRef = useRef(null);
+  const tipoPuntero = useRef("mouse"); // "mouse" | "touch" | "pen"
 
   const puedeAdministrar = esDirectorOAdministrador(usuario);
   const haySesion = Boolean(usuario);
@@ -104,10 +105,10 @@ export default function MenuSuperior({ items = [], usuario = null }) {
       if (evento.key === "Escape") setAbierto(null);
     };
 
-    document.addEventListener("mousedown", manejarClicFuera);
+    document.addEventListener("pointerdown", manejarClicFuera);
     document.addEventListener("keydown", manejarTecla);
     return () => {
-      document.removeEventListener("mousedown", manejarClicFuera);
+      document.removeEventListener("pointerdown", manejarClicFuera);
       document.removeEventListener("keydown", manejarTecla);
     };
   }, []);
@@ -139,7 +140,7 @@ export default function MenuSuperior({ items = [], usuario = null }) {
       <nav
         ref={contenedorRef}
         aria-label="Menú principal"
-        className="hidden lg:flex flex-1 min-w-0 items-center justify-center gap-8 xl:gap-10 font-inter"
+        className="relative col-span-2 row-start-2 mt-1 flex w-full items-center justify-between border-t border-stone-100 pt-1 font-inter lg:static lg:mt-0 lg:w-auto lg:min-w-0 lg:flex-1 lg:justify-center lg:gap-8 lg:border-0 lg:pt-0 xl:gap-10"
       >
         {items.map((item) => {
           const estaAbierto = abierto === item.id;
@@ -147,20 +148,33 @@ export default function MenuSuperior({ items = [], usuario = null }) {
           return (
             <div
               key={item.id}
-              className="relative"
-              onMouseEnter={() => setAbierto(item.id)}
-              onMouseLeave={() =>
-                setAbierto((actual) => (actual === item.id ? null : actual))
-              }
+              className="lg:relative"
+              onPointerEnter={(evento) => {
+                // El "pasar el mouse" solo aplica a mouse; en el celular se usa el toque
+                if (evento.pointerType === "mouse") setAbierto(item.id);
+              }}
+              onPointerLeave={(evento) => {
+                if (evento.pointerType === "mouse") {
+                  setAbierto((actual) => (actual === item.id ? null : actual));
+                }
+              }}
             >
               <button
                 type="button"
-                onClick={() =>
-                  setAbierto((actual) => (actual === item.id ? null : item.id))
-                }
+                onPointerDown={(evento) => {
+                  tipoPuntero.current = evento.pointerType;
+                }}
+                onClick={() => {
+                  if (tipoPuntero.current === "mouse") {
+                    setAbierto(item.id);
+                  } else {
+                    // Celular: cada toque abre o cierra
+                    setAbierto((actual) => (actual === item.id ? null : item.id));
+                  }
+                }}
                 aria-expanded={estaAbierto}
                 aria-haspopup="true"
-                className={`flex items-center gap-1.5 py-2 text-sm font-semibold whitespace-nowrap transition-colors duration-200 ${
+                className={`flex items-center gap-1 py-2 text-[13px] font-semibold whitespace-nowrap min-[400px]:gap-1.5 min-[400px]:text-sm transition-colors duration-200 ${
                   estaAbierto ? "text-[#8A6508]" : "text-[#020201] hover:text-[#8A6508]"
                 }`}
               >
@@ -175,7 +189,7 @@ export default function MenuSuperior({ items = [], usuario = null }) {
               </button>
 
               {estaAbierto && (
-                <div className="absolute left-1/2 top-full z-50 w-80 max-w-[88vw] -translate-x-1/2 pt-2">
+                <div className="absolute inset-x-0 top-full z-50 pt-1 lg:inset-x-auto lg:left-1/2 lg:w-80 lg:-translate-x-1/2 lg:pt-2">
                   <div
                     role="menu"
                     className="il-scale-in rounded-2xl border border-black/10 bg-white p-2 text-left shadow-xl"
