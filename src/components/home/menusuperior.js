@@ -8,16 +8,16 @@ import { esDirectorOAdministrador } from "@/lib/roles";
 
 /**
  * Menú superior del home (Ferias, Mi proceso, Tienda digital).
- * Se despliega al pasar el mouse (o con click/toque).
- * Se cierra al sacar el mouse, al hacer click afuera o con la tecla Escape.
  *
- * - Las 3 opciones se ven siempre, pero "Ferias" y "Mi proceso" (marcadas con
- *   `requiereSesion`) solo dan acceso si el usuario inició sesión; si no,
- *   el desplegable le pide iniciar sesión.
+ * - Computador (lg en adelante): barra con desplegables al pasar el mouse.
+ * - Celular y tablet: botón de tres líneas (hamburguesa) a la derecha del
+ *   encabezado que abre un menú con las mismas opciones (se despliegan al
+ *   tocarlas) y, al final, "Iniciar sesión" o los datos del usuario.
+ * - "Ferias" y "Mi proceso" (marcadas con `requiereSesion`) solo dan acceso
+ *   si el usuario inició sesión; si no, piden iniciar sesión.
  * - "Ferias" lee la tabla `ferias` de Supabase. Los usuarios con sesión las
  *   ven (cada una abre su link de registro). Solo DIRECTOR / ADMINISTRADOR
  *   pueden agregar, editar o eliminar.
- * - Las demás opciones muestran el contenido estático de `enlaces`.
  */
 
 const FLECHA = (
@@ -27,10 +27,38 @@ const FLECHA = (
     fill="none"
     stroke="currentColor"
     strokeWidth="2.2"
-    className="h-3 w-3 min-[400px]:h-3.5 min-[400px]:w-3.5"
+    className="w-3.5 h-3.5"
     aria-hidden="true"
   >
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+const ICONO_MENU = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    className="h-6 w-6"
+    aria-hidden="true"
+  >
+    <path strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" />
+  </svg>
+);
+
+const ICONO_CERRAR = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    className="h-6 w-6"
+    aria-hidden="true"
+  >
+    <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
   </svg>
 );
 
@@ -62,13 +90,20 @@ function normalizarLink(valor) {
    MENÚ SUPERIOR
    ========================================================= */
 
-export default function MenuSuperior({ items = [], usuario = null }) {
-  const [abierto, setAbierto] = useState(null);
+export default function MenuSuperior({
+  items = [],
+  usuario = null,
+  onCerrarSesion,
+  urlIdeaNegocio,
+}) {
+  const [abierto, setAbierto] = useState(null); // desplegable de computador
+  const [menuMovil, setMenuMovil] = useState(false); // menú hamburguesa
+  const [seccionMovil, setSeccionMovil] = useState(null); // sección abierta en el celular
   const [ferias, setFerias] = useState([]);
   const [estadoFerias, setEstadoFerias] = useState("cargando"); // cargando | listo | error
   const [formulario, setFormulario] = useState(null); // null | { feria: null | {...} }
   const contenedorRef = useRef(null);
-  const tipoPuntero = useRef("mouse"); // "mouse" | "touch" | "pen"
+  const movilRef = useRef(null);
 
   const puedeAdministrar = esDirectorOAdministrador(usuario);
   const haySesion = Boolean(usuario);
@@ -100,15 +135,23 @@ export default function MenuSuperior({ items = [], usuario = null }) {
       if (contenedorRef.current && !contenedorRef.current.contains(evento.target)) {
         setAbierto(null);
       }
+      if (movilRef.current && !movilRef.current.contains(evento.target)) {
+        setMenuMovil(false);
+      }
     };
     const manejarTecla = (evento) => {
-      if (evento.key === "Escape") setAbierto(null);
+      if (evento.key === "Escape") {
+        setAbierto(null);
+        setMenuMovil(false);
+      }
     };
 
-    document.addEventListener("pointerdown", manejarClicFuera);
+    document.addEventListener("mousedown", manejarClicFuera);
+    document.addEventListener("touchstart", manejarClicFuera);
     document.addEventListener("keydown", manejarTecla);
     return () => {
-      document.removeEventListener("pointerdown", manejarClicFuera);
+      document.removeEventListener("mousedown", manejarClicFuera);
+      document.removeEventListener("touchstart", manejarClicFuera);
       document.removeEventListener("keydown", manejarTecla);
     };
   }, []);
@@ -133,14 +176,56 @@ export default function MenuSuperior({ items = [], usuario = null }) {
     cargarFerias();
   };
 
+  // Contenido de una opción (igual en computador y en celular)
+  const renderContenido = (item, alAccionar) => {
+    if (item.requiereSesion && !haySesion) return <PanelSinSesion />;
+
+    if (item.id === "ferias") {
+      return (
+        <PanelFerias
+          ferias={ferias}
+          estado={estadoFerias}
+          puedeAdministrar={puedeAdministrar}
+          onAgregar={() => {
+            alAccionar();
+            setFormulario({ feria: null });
+          }}
+          onEditar={(feria) => {
+            alAccionar();
+            setFormulario({ feria });
+          }}
+          onEliminar={eliminarFeria}
+        />
+      );
+    }
+
+    return (item.enlaces || []).map((enlace, indice) => (
+      <div
+        key={indice}
+        role="menuitem"
+        className="rounded-xl px-4 py-2.5 transition-colors hover:bg-stone-50"
+      >
+        <p className="text-sm font-semibold text-[#020201] leading-snug">
+          {enlace.titulo}
+        </p>
+        {enlace.descripcion && (
+          <p className="text-xs text-stone-500 leading-snug mt-0.5">
+            {enlace.descripcion}
+          </p>
+        )}
+      </div>
+    ));
+  };
+
   if (!items.length) return null;
 
   return (
     <>
+      {/* ---------- COMPUTADOR ---------- */}
       <nav
         ref={contenedorRef}
         aria-label="Menú principal"
-        className="relative col-span-2 row-start-2 mt-1 flex w-full items-center justify-between border-t border-stone-100 pt-1 font-inter lg:static lg:mt-0 lg:w-auto lg:min-w-0 lg:flex-1 lg:justify-center lg:gap-8 lg:border-0 lg:pt-0 xl:gap-10"
+        className="hidden lg:flex flex-1 min-w-0 items-center justify-center gap-8 xl:gap-10 font-inter"
       >
         {items.map((item) => {
           const estaAbierto = abierto === item.id;
@@ -148,33 +233,20 @@ export default function MenuSuperior({ items = [], usuario = null }) {
           return (
             <div
               key={item.id}
-              className="lg:relative"
-              onPointerEnter={(evento) => {
-                // El "pasar el mouse" solo aplica a mouse; en el celular se usa el toque
-                if (evento.pointerType === "mouse") setAbierto(item.id);
-              }}
-              onPointerLeave={(evento) => {
-                if (evento.pointerType === "mouse") {
-                  setAbierto((actual) => (actual === item.id ? null : actual));
-                }
-              }}
+              className="relative"
+              onMouseEnter={() => setAbierto(item.id)}
+              onMouseLeave={() =>
+                setAbierto((actual) => (actual === item.id ? null : actual))
+              }
             >
               <button
                 type="button"
-                onPointerDown={(evento) => {
-                  tipoPuntero.current = evento.pointerType;
-                }}
-                onClick={() => {
-                  if (tipoPuntero.current === "mouse") {
-                    setAbierto(item.id);
-                  } else {
-                    // Celular: cada toque abre o cierra
-                    setAbierto((actual) => (actual === item.id ? null : item.id));
-                  }
-                }}
+                onClick={() =>
+                  setAbierto((actual) => (actual === item.id ? null : item.id))
+                }
                 aria-expanded={estaAbierto}
                 aria-haspopup="true"
-                className={`flex items-center gap-1 py-2 text-[13px] font-semibold whitespace-nowrap min-[400px]:gap-1.5 min-[400px]:text-sm transition-colors duration-200 ${
+                className={`flex items-center gap-1.5 py-2 text-sm font-semibold whitespace-nowrap transition-colors duration-200 ${
                   estaAbierto ? "text-[#8A6508]" : "text-[#020201] hover:text-[#8A6508]"
                 }`}
               >
@@ -189,46 +261,12 @@ export default function MenuSuperior({ items = [], usuario = null }) {
               </button>
 
               {estaAbierto && (
-                <div className="absolute inset-x-0 top-full z-50 pt-1 lg:inset-x-auto lg:left-1/2 lg:w-80 lg:-translate-x-1/2 lg:pt-2">
+                <div className="absolute left-1/2 top-full z-50 w-80 max-w-[88vw] -translate-x-1/2 pt-2">
                   <div
                     role="menu"
                     className="il-scale-in rounded-2xl border border-black/10 bg-white p-2 text-left shadow-xl"
                   >
-                    {item.requiereSesion && !haySesion ? (
-                      <PanelSinSesion />
-                    ) : item.id === "ferias" ? (
-                      <PanelFerias
-                        ferias={ferias}
-                        estado={estadoFerias}
-                        puedeAdministrar={puedeAdministrar}
-                        onAgregar={() => {
-                          setAbierto(null);
-                          setFormulario({ feria: null });
-                        }}
-                        onEditar={(feria) => {
-                          setAbierto(null);
-                          setFormulario({ feria });
-                        }}
-                        onEliminar={eliminarFeria}
-                      />
-                    ) : (
-                      (item.enlaces || []).map((enlace, indice) => (
-                        <div
-                          key={indice}
-                          role="menuitem"
-                          className="rounded-xl px-4 py-2.5 transition-colors hover:bg-stone-50"
-                        >
-                          <p className="text-sm font-semibold text-[#020201] leading-snug">
-                            {enlace.titulo}
-                          </p>
-                          {enlace.descripcion && (
-                            <p className="text-xs text-stone-500 leading-snug mt-0.5">
-                              {enlace.descripcion}
-                            </p>
-                          )}
-                        </div>
-                      ))
-                    )}
+                    {renderContenido(item, () => setAbierto(null))}
                   </div>
                 </div>
               )}
@@ -236,6 +274,114 @@ export default function MenuSuperior({ items = [], usuario = null }) {
           );
         })}
       </nav>
+
+      {/* ---------- CELULAR Y TABLET: botón de tres líneas ---------- */}
+      <div
+        ref={movilRef}
+        className="col-start-2 row-start-1 justify-self-end font-inter lg:hidden"
+      >
+        <button
+          type="button"
+          onClick={() => setMenuMovil((valor) => !valor)}
+          aria-expanded={menuMovil}
+          aria-label={menuMovil ? "Cerrar menú" : "Abrir menú"}
+          className="flex h-10 w-10 items-center justify-center rounded-xl text-[#020201] transition-colors hover:bg-stone-100"
+        >
+          {menuMovil ? ICONO_CERRAR : ICONO_MENU}
+        </button>
+
+        {menuMovil && (
+          <div className="il-scale-in absolute inset-x-3 top-full z-50 mt-2 max-h-[calc(100dvh-6.5rem)] overflow-y-auto rounded-2xl border border-black/10 bg-white p-4 text-left shadow-2xl">
+            {items.map((item) => {
+              const seccionAbierta = seccionMovil === item.id;
+
+              return (
+                <div key={item.id} className="border-b border-stone-200">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSeccionMovil((actual) => (actual === item.id ? null : item.id))
+                    }
+                    aria-expanded={seccionAbierta}
+                    className={`flex w-full items-center justify-between py-4 text-left text-base font-semibold transition-colors ${
+                      seccionAbierta ? "text-[#8A6508]" : "text-[#020201]"
+                    }`}
+                  >
+                    {item.label}
+                    <span
+                      className={`transition-transform duration-200 ${
+                        seccionAbierta ? "rotate-180" : ""
+                      }`}
+                    >
+                      {FLECHA}
+                    </span>
+                  </button>
+
+                  {seccionAbierta && (
+                    <div className="pb-3">
+                      {renderContenido(item, () => setMenuMovil(false))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            <div className="pt-4">
+              {haySesion ? (
+                <div className="rounded-xl bg-stone-50 p-4">
+                  <p className="font-montserrat font-bold text-sm text-[#020201]">
+                    {usuario.user_metadata?.nombre ?? "Sin nombre registrado"}
+                  </p>
+                  <p className="mt-0.5 break-all text-xs text-stone-500">
+                    {usuario.email}
+                  </p>
+
+                  <div className="mt-3 border-t border-stone-200 pt-3">
+                    {usuario.user_metadata?.tieneIdeaNegocio ? (
+                      <>
+                        <p className="mb-1 text-xs font-medium text-stone-500">
+                          Idea de negocio
+                        </p>
+                        <p className="text-sm font-semibold text-[#003893]">
+                          {usuario.user_metadata?.nombreEmprendimiento}
+                        </p>
+                      </>
+                    ) : urlIdeaNegocio ? (
+                      <a
+                        target="_blank"
+                        rel="noreferrer"
+                        href={urlIdeaNegocio}
+                        className="block text-sm font-semibold text-[#003893] hover:underline"
+                      >
+                        ¿Quieres crear una idea de negocio?
+                      </a>
+                    ) : null}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuMovil(false);
+                      if (onCerrarSesion) onCerrarSesion();
+                    }}
+                    className="mt-4 w-full text-center text-sm font-medium text-[#CE1126] transition-colors hover:text-[#CE1126]/80"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMenuMovil(false)}
+                  className="block w-full rounded-xl bg-[#003893] px-4 py-3 text-center font-montserrat text-sm font-semibold tracking-wide text-white transition hover:bg-[#003893]/90"
+                >
+                  Iniciar sesión
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       {formulario && puedeAdministrar && (
         <ModalPortal>

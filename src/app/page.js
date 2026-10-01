@@ -243,10 +243,15 @@ export default function Home() {
             </div>
           </div>
 
-          <MenuSuperior items={MENU_SUPERIOR} usuario={usuario} />
+          <MenuSuperior
+            items={MENU_SUPERIOR}
+            usuario={usuario}
+            onCerrarSesion={manejarCerrarSesion}
+            urlIdeaNegocio={URL_CUADRO_AZUL}
+          />
 
           {usuario ? (
-            <div className="relative col-start-2 row-start-1 min-w-0 justify-self-end" ref={menuUsuarioRef}>
+            <div className="relative hidden lg:block col-start-2 row-start-1 min-w-0 justify-self-end" ref={menuUsuarioRef}>
               <button
                 onClick={() => setMostrarTarjetaUsuario((valor) => !valor)}
                 className="block max-w-full truncate text-xs sm:text-sm font-semibold text-[#020201] hover:text-[#003893] transition-colors"
@@ -298,7 +303,7 @@ export default function Home() {
             <Link
               href="/login"
               aria-label="Iniciar sesión"
-              className="col-start-2 row-start-1 justify-self-end flex items-center gap-1.5 sm:gap-2 shrink-0 group"
+              className="col-start-2 row-start-1 justify-self-end hidden lg:flex items-center gap-1.5 sm:gap-2 shrink-0 group"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
