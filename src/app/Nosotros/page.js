@@ -60,6 +60,120 @@ export default function NosotrosPage() {
     return () => contenedor.removeEventListener("wheel", alGirarRueda);
   }, []);
 
+  // Arrastrar con el mouse: mantener el clic y mover hacia un lado desplaza
+  // las secciones (en el celular esto ya funciona con el dedo de forma nativa).
+  // Al soltar, la sección elegida queda al frente.
+  useEffect(() => {
+    const contenedor = contenedorRef.current;
+    if (!contenedor) return;
+
+    const MOVIMIENTO_MINIMO_PX = 6;
+    const UMBRAL_PX = 60;
+    let gesto = null;
+    let huboArrastre = false;
+
+    const alBajar = (evento) => {
+      if (evento.pointerType !== "mouse" || evento.button !== 0) return;
+      if (evento.target.closest("input, textarea, select, [data-no-deslizar]")) return;
+
+      huboArrastre = false;
+      gesto = {
+        id: evento.pointerId,
+        x: evento.clientX,
+        inicio: contenedor.scrollLeft,
+        t0: performance.now(),
+        dx: 0,
+        activo: false,
+      };
+    };
+
+    const alMover = (evento) => {
+      if (!gesto || gesto.id !== evento.pointerId) return;
+
+      const dx = evento.clientX - gesto.x;
+
+      if (!gesto.activo) {
+        if (Math.abs(dx) < MOVIMIENTO_MINIMO_PX) return;
+
+        gesto.activo = true;
+        huboArrastre = true;
+        contenedor.setPointerCapture(evento.pointerId);
+        window.getSelection?.()?.removeAllRanges();
+
+        // Mientras se arrastra, el "imán" y la animación suave estorban
+        contenedor.style.scrollSnapType = "none";
+        contenedor.style.scrollBehavior = "auto";
+        contenedor.style.cursor = "grabbing";
+        contenedor.style.userSelect = "none";
+      }
+
+      gesto.dx = dx;
+      contenedor.scrollLeft = gesto.inicio - dx;
+    };
+
+    const alSoltar = (evento) => {
+      if (!gesto || gesto.id !== evento.pointerId) return;
+
+      const actual = gesto;
+      gesto = null;
+      if (!actual.activo) return;
+
+      if (contenedor.hasPointerCapture?.(evento.pointerId)) {
+        contenedor.releasePointerCapture(evento.pointerId);
+      }
+
+      const ancho = contenedor.clientWidth;
+      const ultimaSeccion = Math.round(
+        (contenedor.scrollWidth - ancho) / ancho
+      );
+      const seccionInicial = Math.round(actual.inicio / ancho);
+      const velocidad =
+        Math.abs(actual.dx) / Math.max(1, performance.now() - actual.t0);
+
+      // Si arrastró lo suficiente (o fue un movimiento rápido) pasa a la
+      // sección vecina; si no, vuelve a la que estaba.
+      let destino = seccionInicial;
+      const alcanza =
+        Math.abs(actual.dx) >= UMBRAL_PX ||
+        (velocidad > 0.5 && Math.abs(actual.dx) > 20);
+      if (alcanza) destino += actual.dx < 0 ? 1 : -1;
+      destino = Math.max(0, Math.min(ultimaSeccion, destino));
+
+      contenedor.style.scrollSnapType = "";
+      contenedor.style.scrollBehavior = "";
+      contenedor.style.cursor = "";
+      contenedor.style.userSelect = "";
+      contenedor.scrollTo({ left: destino * ancho, behavior: "smooth" });
+    };
+
+    // Si hubo arrastre, no se debe "hacer clic" en lo que quedó debajo
+    const alHacerClic = (evento) => {
+      if (!huboArrastre) return;
+      huboArrastre = false;
+      evento.preventDefault();
+      evento.stopPropagation();
+    };
+
+    // Evita el "fantasma" de arrastrar imágenes / enlaces del navegador
+    const alIniciarArrastreNativo = (evento) => evento.preventDefault();
+
+    contenedor.addEventListener("pointerdown", alBajar);
+    contenedor.addEventListener("pointermove", alMover);
+    contenedor.addEventListener("pointerup", alSoltar);
+    contenedor.addEventListener("pointercancel", alSoltar);
+    contenedor.addEventListener("click", alHacerClic, true);
+    contenedor.addEventListener("dragstart", alIniciarArrastreNativo);
+
+    return () => {
+      contenedor.removeEventListener("pointerdown", alBajar);
+      contenedor.removeEventListener("pointermove", alMover);
+      contenedor.removeEventListener("pointerup", alSoltar);
+      contenedor.removeEventListener("pointercancel", alSoltar);
+      contenedor.removeEventListener("click", alHacerClic, true);
+      contenedor.removeEventListener("dragstart", alIniciarArrastreNativo);
+    };
+  }, []);
+
   // Si se llega desde un link tipo /Nosotros#detalle-quienes (por ejemplo
   // desde las tarjetas de la página de inicio), ubica el scroll horizontal
   // directamente en esa sección al cargar la página.
@@ -148,7 +262,7 @@ export default function NosotrosPage() {
 
       <div
         ref={contenedorRef}
-        className="il-nos-carrusel flex h-dvh w-screen snap-x snap-mandatory overflow-x-auto"
+        className="il-nos-carrusel flex h-dvh w-screen cursor-grab snap-x snap-mandatory overflow-x-auto"
       >
         {/* HERO */}
         <section className="il-nos-textura relative flex h-dvh w-screen shrink-0 snap-center flex-col items-center justify-center overflow-hidden px-6 pb-12 pt-32 text-center md:pt-44">

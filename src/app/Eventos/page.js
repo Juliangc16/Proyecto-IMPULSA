@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createClient } from "@lib/client";
 import { esDirectorOAdministrador } from "@/lib/roles";
 import Reveal from "@/components/ui/Reveal";
+import CarruselDeslizable from "@/components/ui/CarruselDeslizable";
 import EventoForm from "./EventoForm";
 import GaleriaParticipacion from "./GaleriaParticipacion";
 
@@ -35,9 +36,6 @@ export default function EventosPage() {
 
   const puedeAdministrar = esDirectorOAdministrador(usuario);
   const total = eventos.length;
-
-  const anterior = () => setIndice((i) => (i - 1 + total) % total);
-  const siguiente = () => setIndice((i) => (i + 1) % total);
 
   const manejarEliminar = async (evento) => {
     if (!window.confirm(`¿Eliminar el evento "${evento.titulo}"?`)) return;
@@ -101,46 +99,30 @@ export default function EventosPage() {
 
         {!cargando && eventos.length > 0 && (
           <div className="relative w-full max-w-3xl mx-auto">
-            {total > 1 && (
-              <button
-                type="button"
-                onClick={anterior}
-                aria-label="Evento anterior"
-                className="absolute -left-3 md:-left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-stone-200 shadow-lg flex items-center justify-center text-stone-500 hover:text-[#CE1126] hover:border-[#CE1126] hover:scale-105 transition-all"
-              >
-                <span className="text-2xl leading-none">‹</span>
-              </button>
-            )}
-
-            <TarjetaEvento
-              evento={eventos[indice]}
-              puedeAdministrar={puedeAdministrar}
-              onEditar={() => {
-                setEventoEnEdicion(eventos[indice]);
-                setMostrarFormulario(true);
-              }}
-              onEliminar={() => manejarEliminar(eventos[indice])}
+            <CarruselDeslizable
+              items={eventos}
+              indice={indice}
+              onCambiar={setIndice}
+              etiqueta="Eventos"
+              renderItem={(evento, i, esActual) => (
+                <TarjetaEvento
+                  evento={evento}
+                  esActual={esActual}
+                  puedeAdministrar={puedeAdministrar}
+                  onEditar={() => {
+                    setEventoEnEdicion(evento);
+                    setMostrarFormulario(true);
+                  }}
+                  onEliminar={() => manejarEliminar(evento)}
+                />
+              )}
             />
 
             {total > 1 && (
-              <button
-                type="button"
-                onClick={siguiente}
-                aria-label="Siguiente evento"
-                className="absolute -right-3 md:-right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-stone-200 shadow-lg flex items-center justify-center text-stone-500 hover:text-[#CE1126] hover:border-[#CE1126] hover:scale-105 transition-all"
-              >
-                <span className="text-2xl leading-none">›</span>
-              </button>
-            )}
-
-            {total > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-5">
+              <div className="flex items-center justify-center gap-2 mt-5" aria-hidden="true">
                 {eventos.map((_, i) => (
-                  <button
+                  <span
                     key={i}
-                    type="button"
-                    aria-label={`Ir al evento ${i + 1}`}
-                    onClick={() => setIndice(i)}
                     className={`h-2.5 rounded-full transition-all duration-300 ${
                       i === indice ? "w-6 bg-[#CE1126]" : "w-2.5 bg-stone-300"
                     }`}
@@ -168,11 +150,15 @@ export default function EventosPage() {
   );
 }
 
-function TarjetaEvento({ evento, puedeAdministrar, onEditar, onEliminar }) {
+function TarjetaEvento({ evento, esActual = true, puedeAdministrar, onEditar, onEliminar }) {
+  // Los vecinos (solo visibles mientras se arrastra) no usan el efecto de
+  // aparición: al estar fuera de pantalla nunca se activaría y se verían vacíos.
+  const Contenedor = esActual ? Reveal : "article";
+  const propsContenedor = esActual ? { as: "article" } : {};
+
   return (
-    <Reveal
-      as="article"
-      key={evento.id}
+    <Contenedor
+      {...propsContenedor}
       className="bg-white border-2 border-[#CE1126]/20 rounded-2xl overflow-hidden shadow-md il-hover-lift"
     >
       <div className="w-full aspect-video md:aspect-[16/8] bg-stone-100 flex items-center justify-center overflow-hidden">
@@ -180,6 +166,7 @@ function TarjetaEvento({ evento, puedeAdministrar, onEditar, onEliminar }) {
           <img
             src={evento.imagen_url}
             alt={evento.titulo}
+            draggable={false}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -238,6 +225,6 @@ function TarjetaEvento({ evento, puedeAdministrar, onEditar, onEliminar }) {
           )}
         </div>
       </div>
-    </Reveal>
+    </Contenedor>
   );
 }

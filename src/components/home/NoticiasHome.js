@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { createClient } from "@lib/client";
 import { esDirectorOAdministrador } from "@/lib/roles";
 import Reveal from "@/components/ui/Reveal";
+import CarruselDeslizable from "@/components/ui/CarruselDeslizable";
 
 function formatearFecha(fecha) {
   if (!fecha) return "";
@@ -78,41 +79,9 @@ export default function NoticiasHome({ usuario }) {
     setIndice(0);
   }, [total]);
 
-  /* =========================================================
-     AVANCE AUTOMÁTICO
-     ========================================================= */
-
-  useEffect(() => {
-    if (total <= 1) return;
-
-    const temporizador = setInterval(() => {
-      setIndice((i) => (i + 1) % total);
-    }, 10000);
-
-    return () => clearInterval(temporizador);
-  }, [total]);
-
-  /* =========================================================
-     NAVEGACIÓN
-     ========================================================= */
-
-  const anterior = () => {
-    if (total === 0) return;
-
-    setIndice((i) => (i - 1 + total) % total);
-  };
-
-  const siguiente = () => {
-    if (total === 0) return;
-
-    setIndice((i) => (i + 1) % total);
-  };
-
   if (cargando) return null;
 
   if (!puedeAdministrar && noticias.length === 0) return null;
-
-  const noticiaActual = noticias[indice];
 
   return (
     <>
@@ -152,103 +121,73 @@ export default function NoticiasHome({ usuario }) {
           <div className="relative w-full max-w-2xl mx-auto">
 
             {/* =================================================
-                BOTÓN ANTERIOR
+                NOTICIAS (arrastra o desliza para cambiar)
                 ================================================= */}
 
-            {total > 1 && (
-              <button
-                type="button"
-                onClick={anterior}
-                aria-label="Noticia anterior"
-                className="absolute -left-3 md:-left-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-11 md:h-11 rounded-full bg-white border border-stone-200 shadow-lg flex items-center justify-center text-stone-500 hover:text-[#CE1126] hover:border-[#CE1126] hover:scale-105 transition-all"
-              >
-                <span className="text-xl leading-none">
-                  ‹
-                </span>
-              </button>
-            )}
+            <CarruselDeslizable
+              items={noticias}
+              indice={indice}
+              onCambiar={setIndice}
+              autoMs={10000}
+              etiqueta="Noticias"
+              renderItem={(noticia) => (
+                <button
+                  type="button"
+                  onClick={() => setNoticiaAbierta(noticia)}
+                  className="il-hover-lift text-left w-full bg-white rounded-2xl border-2 border-[#CE1126]/20 overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300"
+                >
+                  <div className="w-full aspect-video md:aspect-[16/8] bg-stone-100 overflow-hidden">
+                    {noticia.imagen_url ? (
+                      <img
+                        src={noticia.imagen_url}
+                        alt={noticia.titulo}
+                        loading="lazy"
+                        draggable={false}
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-stone-300 text-sm">
+                        Sin imagen
+                      </div>
+                    )}
+                  </div>
 
-            {/* =================================================
-                NOTICIA ACTUAL
-                ================================================= */}
+                  <div className="p-4 md:p-6 space-y-1.5 md:space-y-2">
+                    <h3 className="font-montserrat font-bold text-sm md:text-lg text-[#020201] line-clamp-2">
+                      {noticia.titulo}
+                    </h3>
 
-            {noticiaActual && (
-              <button
-                key={noticiaActual.id}
-                type="button"
-                onClick={() => setNoticiaAbierta(noticiaActual)}
-                className="il-fade-in il-hover-lift text-left w-full bg-white rounded-2xl border-2 border-[#CE1126]/20 overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300"
-              >
-                <div className="w-full aspect-video md:aspect-[16/8] bg-stone-100 overflow-hidden">
-                  {noticiaActual.imagen_url ? (
-                    <img
-                      src={noticiaActual.imagen_url}
-                      alt={noticiaActual.titulo}
-                      loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-stone-300 text-sm">
-                      Sin imagen
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-4 md:p-6 space-y-1.5 md:space-y-2">
-                  <h3 className="font-montserrat font-bold text-sm md:text-lg text-[#020201] line-clamp-2">
-                    {noticiaActual.titulo}
-                  </h3>
-
-                  <p className="text-stone-600 text-xs md:text-sm leading-relaxed line-clamp-2">
-                    {noticiaActual.contenido}
-                  </p>
-
-                  <div className="flex items-center justify-between gap-3 pt-1 md:pt-2">
-                    <p className="text-[11px] md:text-xs text-stone-400">
-                      {noticiaActual.autor_nombre ?? "IMPULSA LAB"} ·{" "}
-                      {formatearFecha(noticiaActual.creado_en)}
+                    <p className="text-stone-600 text-xs md:text-sm leading-relaxed line-clamp-2">
+                      {noticia.contenido}
                     </p>
 
-                    <span className="shrink-0 inline-flex items-center gap-1 text-xs md:text-sm font-semibold text-[#CE1126]">
-                      Leer ahora
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </span>
+                    <div className="flex items-center justify-between gap-3 pt-1 md:pt-2">
+                      <p className="text-[11px] md:text-xs text-stone-400">
+                        {noticia.autor_nombre ?? "IMPULSA LAB"} ·{" "}
+                        {formatearFecha(noticia.creado_en)}
+                      </p>
+
+                      <span className="shrink-0 inline-flex items-center gap-1 text-xs md:text-sm font-semibold text-[#CE1126]">
+                        Leer ahora
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </button>
-            )}
+                </button>
+              )}
+            />
 
             {/* =================================================
-                BOTÓN SIGUIENTE
+                INDICADORES (solo informativos)
                 ================================================= */}
 
             {total > 1 && (
-              <button
-                type="button"
-                onClick={siguiente}
-                aria-label="Siguiente noticia"
-                className="absolute -right-3 md:-right-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-11 md:h-11 rounded-full bg-white border border-stone-200 shadow-lg flex items-center justify-center text-stone-500 hover:text-[#CE1126] hover:border-[#CE1126] hover:scale-105 transition-all"
-              >
-                <span className="text-xl leading-none">
-                  ›
-                </span>
-              </button>
-            )}
-
-            {/* =================================================
-                INDICADORES
-                ================================================= */}
-
-            {total > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-4">
+              <div className="flex items-center justify-center gap-2 mt-4" aria-hidden="true">
                 {noticias.map((_, i) => (
-                  <button
+                  <span
                     key={i}
-                    type="button"
-                    aria-label={`Ir a la noticia ${i + 1}`}
-                    onClick={() => setIndice(i)}
                     className={`h-2.5 rounded-full transition-all duration-300 ${
                       i === indice
                         ? "w-6 bg-[#CE1126]"

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@lib/client";
 import { esDirectorOAdministrador } from "@/lib/roles";
+import CarruselDeslizable from "@/components/ui/CarruselDeslizable";
 
 const SECCION_VIDEO = "nuestros_emprendedores";
 
@@ -163,11 +164,85 @@ export default function VideoEmprendedores({ usuario }) {
   if (cargando) return null;
 
   const total = videos.length;
-  const videoActual = total > 0 ? videos[indice] : null;
-  const urlEmbed = videoActual ? obtenerUrlEmbed(videoActual.url) : null;
 
-  const anterior = () => setIndice((i) => (i - 1 + total) % total);
-  const siguiente = () => setIndice((i) => (i + 1) % total);
+  // Contenido de cada video del carrusel. Los vecinos (esActual = false) solo
+  // se ven mientras se arrastra, así que muestran la miniatura en vez de
+  // cargar otro reproductor.
+  const renderVideo = (video, i, esActual) => {
+    const idYoutube = obtenerIdYoutube(video.url);
+    const miniatura = idYoutube
+      ? `https://img.youtube.com/vi/${idYoutube}/hqdefault.jpg`
+      : null;
+
+    const estiloCaja = {
+      width: `${video.ancho}px`,
+      height: `${video.alto}px`,
+      maxWidth: "100%",
+      ...(miniatura
+        ? {
+            backgroundImage: `url(${miniatura})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }
+        : {}),
+    };
+
+    return (
+      <div className="flex flex-col items-center gap-2">
+        {video.titulo && (
+          <p className="font-montserrat font-semibold text-sm text-stone-600">
+            {video.titulo}
+          </p>
+        )}
+
+        {!esActual ? (
+          <div style={estiloCaja} className="rounded-xl shadow-md bg-black" />
+        ) : esVideoDirecto(video.url) ? (
+          <video
+            src={video.url}
+            controls
+            data-no-deslizar
+            style={{
+              width: `${video.ancho}px`,
+              height: `${video.alto}px`,
+              maxWidth: "100%",
+            }}
+            className="rounded-xl shadow-md bg-black"
+          />
+        ) : (
+          <div style={estiloCaja} className="rounded-xl shadow-md bg-black overflow-hidden">
+            <iframe
+              src={obtenerUrlEmbed(video.url)}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title="Video de IMPULSA LAB"
+            />
+          </div>
+        )}
+
+        {/* Zona para deslizar: el reproductor de YouTube captura el mouse y
+            el dedo, así que se deja esta franja libre para arrastrar. */}
+        {esActual && total > 1 && (
+          <div className="flex h-9 w-full max-w-[320px] items-center justify-center gap-2 rounded-full bg-stone-100 text-[11px] font-semibold text-stone-400">
+            <span aria-hidden="true">‹</span>
+            Desliza para cambiar de video
+            <span aria-hidden="true">›</span>
+          </div>
+        )}
+
+        {esActual && puedeAdministrar && (
+          <button
+            type="button"
+            onClick={() => manejarEliminar(video)}
+            className="text-xs font-semibold text-[#CE1126] hover:underline"
+          >
+            Eliminar este video
+          </button>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col items-center gap-6">
@@ -292,82 +367,21 @@ export default function VideoEmprendedores({ usuario }) {
 
       {total > 0 && (
         <div className="relative flex flex-col items-center w-full">
-          <div className="relative flex justify-center w-full px-4">
-            {total > 1 && (
-              <button
-                type="button"
-                onClick={anterior}
-                aria-label="Video anterior"
-                className="absolute left-0 md:-left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-stone-200 shadow-lg flex items-center justify-center text-stone-500 hover:text-[#CE1126] hover:border-[#CE1126] hover:scale-105 transition-all"
-              >
-                <span className="text-2xl leading-none">‹</span>
-              </button>
-            )}
-
-            <div className="flex flex-col items-center gap-2">
-              {videoActual.titulo && (
-                <p className="font-montserrat font-semibold text-sm text-stone-600">
-                  {videoActual.titulo}
-                </p>
-              )}
-
-              {esVideoDirecto(videoActual.url) ? (
-                <video
-                  src={videoActual.url}
-                  controls
-                  style={{
-                    width: `${videoActual.ancho}px`,
-                    height: `${videoActual.alto}px`,
-                    maxWidth: "100%",
-                  }}
-                  className="rounded-xl shadow-md bg-black"
-                />
-              ) : (
-                <iframe
-                  src={urlEmbed}
-                  style={{
-                    width: `${videoActual.ancho}px`,
-                    height: `${videoActual.alto}px`,
-                    maxWidth: "100%",
-                  }}
-                  className="rounded-xl shadow-md"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title="Video de IMPULSA LAB"
-                />
-              )}
-
-              {puedeAdministrar && (
-                <button
-                  type="button"
-                  onClick={() => manejarEliminar(videoActual)}
-                  className="text-xs font-semibold text-[#CE1126] hover:underline"
-                >
-                  Eliminar este video
-                </button>
-              )}
-            </div>
-
-            {total > 1 && (
-              <button
-                type="button"
-                onClick={siguiente}
-                aria-label="Siguiente video"
-                className="absolute right-0 md:-right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-stone-200 shadow-lg flex items-center justify-center text-stone-500 hover:text-[#CE1126] hover:border-[#CE1126] hover:scale-105 transition-all"
-              >
-                <span className="text-2xl leading-none">›</span>
-              </button>
-            )}
+          <div className="relative w-full px-4">
+            <CarruselDeslizable
+              items={videos}
+              indice={indice}
+              onCambiar={setIndice}
+              etiqueta="Videos de nuestros emprendedores"
+              renderItem={renderVideo}
+            />
           </div>
 
           {total > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-4 flex-wrap max-w-md">
+            <div className="flex items-center justify-center gap-2 mt-4 flex-wrap max-w-md" aria-hidden="true">
               {videos.map((_, i) => (
-                <button
+                <span
                   key={i}
-                  type="button"
-                  aria-label={`Ir al video ${i + 1}`}
-                  onClick={() => setIndice(i)}
                   className={`h-2.5 rounded-full transition-all duration-300 ${
                     i === indice ? "w-6 bg-[#CE1126]" : "w-2.5 bg-stone-300"
                   }`}
