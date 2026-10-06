@@ -99,9 +99,9 @@ export default function PanelAcademico({ usuario }) {
           const diagnosticos = await leer(
             supabase
               .from("diagnosticos")
-              .select("usuario_id, perfil, creado_en")
+              .select("user_id, creado_en, brechas_prioritarias")
               .in(
-                "usuario_id",
+                "user_id",
                 listaEstudiantes.map((e) => e.id)
               )
               .order("creado_en", { ascending: false })
@@ -109,7 +109,10 @@ export default function PanelAcademico({ usuario }) {
 
           // Como vienen del más nuevo al más viejo, nos quedamos con el primero de cada uno
           diagnosticos.forEach((d) => {
-            if (!mapa[d.usuario_id]) mapa[d.usuario_id] = d.perfil;
+            if (!mapa[d.user_id]) {
+              const prioridad = Array.isArray(d.brechas_prioritarias) ? d.brechas_prioritarias[0]?.titulo_fase : null;
+              mapa[d.user_id] = prioridad ? `Prioridad: ${prioridad}` : "Diagnóstico completado";
+            }
           });
         }
 

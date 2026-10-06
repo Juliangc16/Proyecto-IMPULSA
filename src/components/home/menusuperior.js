@@ -15,6 +15,8 @@ import { esDirectorOAdministrador } from "@/lib/roles";
  *   tocarlas) y, al final, "Iniciar sesión" o los datos del usuario.
  * - "Ferias" y "Mi proceso" (marcadas con `requiereSesion`) solo dan acceso
  *   si el usuario inició sesión; si no, piden iniciar sesión.
+ * - Las opciones con `href` (ej.: "Mi proceso") no despliegan nada: llevan
+ *   directo a esa página (o al inicio de sesión si no hay sesión).
  * - "Ferias" lee la tabla `ferias` de Supabase. Los usuarios con sesión las
  *   ven (cada una abre su link de registro). Solo DIRECTOR / ADMINISTRADOR
  *   pueden agregar, editar o eliminar.
@@ -230,6 +232,21 @@ export default function MenuSuperior({
         {items.map((item) => {
           const estaAbierto = abierto === item.id;
 
+          // Opciones con enlace directo (ej.: "Mi proceso"): sin desplegable.
+          // Sin sesión, llevan al inicio de sesión.
+          if (item.href) {
+            const destino = item.requiereSesion && !haySesion ? "/login" : item.href;
+            return (
+              <Link
+                key={item.id}
+                href={destino}
+                className="flex items-center py-2 text-sm font-semibold whitespace-nowrap text-[#020201] transition-colors duration-200 hover:text-[#8A6508]"
+              >
+                {item.label}
+              </Link>
+            );
+          }
+
           return (
             <div
               key={item.id}
@@ -294,6 +311,23 @@ export default function MenuSuperior({
           <div className="il-scale-in absolute inset-x-3 top-full z-50 mt-2 max-h-[calc(100dvh-6.5rem)] overflow-y-auto rounded-2xl border border-black/10 bg-white p-4 text-left shadow-2xl">
             {items.map((item) => {
               const seccionAbierta = seccionMovil === item.id;
+
+              // Opciones con enlace directo (ej.: "Mi proceso"): se navega sin desplegar nada.
+              // Sin sesión, llevan al inicio de sesión.
+              if (item.href) {
+                const destinoMovil = item.requiereSesion && !haySesion ? "/login" : item.href;
+                return (
+                  <div key={item.id} className="border-b border-stone-200">
+                    <Link
+                      href={destinoMovil}
+                      onClick={() => setMenuMovil(false)}
+                      className="flex w-full items-center justify-between py-4 text-left text-base font-semibold text-[#020201] transition-colors hover:text-[#8A6508]"
+                    >
+                      {item.label}
+                    </Link>
+                  </div>
+                );
+              }
 
               return (
                 <div key={item.id} className="border-b border-stone-200">

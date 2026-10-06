@@ -1,14 +1,3 @@
-/**
- * Contenido de "Quiénes somos", "Qué hacemos" y "Cuál es nuestro propósito".
- *
- * Este archivo centraliza el texto para que:
- *  - La página de inicio solo muestre las tarjetas resumen (teaser).
- *  - La página /nosotros muestre el contenido completo con el diseño
- *    cinematográfico inspirado en Santa Monica Studio.
- *
- * Si necesitas editar el texto institucional, solo debes tocar este archivo.
- */
-
 export const SOBRE_NOSOTROS = [
   {
     id: "quienes",

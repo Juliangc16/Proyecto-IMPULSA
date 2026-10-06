@@ -1,143 +1,306 @@
 "use client";
-import { useMemo, useState } from "react";
+
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@lib/client";
-import { BLOQUES } from "@/lib/diagnostico/preguntas";
-import { calcularDiagnostico } from "@/lib/diagnostico/motor";
+import { SECTORES } from "@/lib/proceso/fases";
+import { PASOS_PREGUNTAS, PREGUNTAS, TOTAL_PREGUNTAS } from "@/lib/proceso/preguntas";
+import { armarTalleres, calcularPromedios, seleccionarBrechas } from "@/lib/proceso/calculo";
 
-const COLORES_SEMAFORO = {
-  verde: { emoji: "🟢", texto: "text-green-700", fondo: "bg-green-50", borde: "border-green-300" },
-  amarillo: { emoji: "🟡", texto: "text-yellow-700", fondo: "bg-yellow-50", borde: "border-yellow-300" },
-  rojo: { emoji: "🔴", texto: "text-[#CE1126]", fondo: "bg-red-50", borde: "border-red-300" },
-  gris: { emoji: "⚪", texto: "text-stone-500", fondo: "bg-stone-50", borde: "border-stone-300" },
-};
+// Paso 0 = datos del emprendimiento; pasos 1 a 6 = grupos de 4 preguntas (1 a 24 continuas).
+const TOTAL_PASOS = PASOS_PREGUNTAS.length + 1;
 
-export default function DiagnosticoForm({ usuario }) {
-  const [pasoActual, setPasoActual] = useState(0);
+const CAMPO =
+  "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003893]";
+
+export default function DiagnosticoForm({ nombreInicial = "" }) {
+  const router = useRouter();
+
+  const [paso, setPaso] = useState(0);
+  const [datos, setDatos] = useState({
+    nombre_emprendimiento: "",
+    lider: nombreInicial,
+    sector: "",
+    programa: "",
+  });
   const [respuestas, setRespuestas] = useState({});
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
-  const [resultado, setResultado] = useState(null);
 
-  const totalPasos = BLOQUES.length;
-  const bloque = BLOQUES[pasoActual];
-  const progreso = Math.round(((pasoActual + 1) / totalPasos) * 100);
+  const respondidas = Object.keys(respuestas).length;
+  const esUltimoPaso = paso === TOTAL_PASOS - 1;
+  const preguntasDelPaso = paso === 0 ? [] : PASOS_PREGUNTAS[paso - 1];
 
-  const actualizarRespuesta = (id, valor) => {
-    setRespuestas((prev) => ({ ...prev, [id]: valor }));
+  const actualizarDato = (campo, valor) => setDatos((prev) => ({ ...prev, [campo]: valor }));
+
+  const elegirRespuesta = (preguntaId, puntaje) =>
+    setRespuestas((prev) => ({ ...prev, [preguntaId]: puntaje }));
+
+  const datosCompletos =
+    datos.nombre_emprendimiento.trim() &&
+    datos.lider.trim() &&
+    datos.sector.trim() &&
+    datos.programa.trim();
+
+  const pasoCompleto =
+    paso === 0 ? Boolean(datosCompletos) : preguntasDelPaso.every((p) => respuestas[p.id] !== undefined);
+
+  const subirAlInicio = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
+  const siguiente = () => {
+    if (!pasoCompleto) {
+      setError(paso === 0 ? "Completa todos los datos para continuar." : "Responde todas las preguntas para continuar.");
+      return;
+    }
+    setError("");
+    setPaso((p) => Math.min(p + 1, TOTAL_PASOS - 1));
+    subirAlInicio();
   };
 
-  const alternarMulti = (id, opcion, max) => {
-    setRespuestas((prev) => {
-      const actual = prev[id] ?? [];
-      const yaSeleccionada = actual.includes(opcion);
-      let nuevo;
-      if (yaSeleccionada) {
-        nuevo = actual.filter((o) => o !== opcion);
-      } else {
-        if (max && actual.length >= max) return prev;
-        nuevo = [...actual, opcion];
-      }
-      return { ...prev, [id]: nuevo };
-    });
+  const anterior = () => {
+    setError("");
+    setPaso((p) => Math.max(p - 1, 0));
+    subirAlInicio();
   };
-
-  const siguiente = () => setPasoActual((p) => Math.min(p + 1, totalPasos - 1));
-  const anterior = () => setPasoActual((p) => Math.max(p - 1, 0));
 
   const enviar = async () => {
+    if (enviando) return;
+
+    if (!pasoCompleto) {
+      setError("Responde todas las preguntas para continuar.");
+      return;
+    }
+
+    const sinResponder = PREGUNTAS.filter((p) => respuestas[p.id] === undefined);
+    if (sinResponder.length > 0) {
+      setError(`Faltan por responder las preguntas: ${sinResponder.map((p) => p.numero).join(", ")}.`);
+      return;
+    }
+
     setEnviando(true);
     setError("");
+
+    const supabase = createClient();
+    let diagnosticoId = null;
+
     try {
-      const calculo = calcularDiagnostico(respuestas);
-      setResultado(calculo);
+      // 1) Promedios independientes de las 6 fases y selección de las 4 más bajas
+      const promedios = calcularPromedios(respuestas);
+      const brechas = seleccionarBrechas(promedios);
 
-      const supabase = createClient();
-      const { error: errorGuardar } = await supabase.from("diagnosticos").insert({
-        usuario_id: usuario?.id ?? null,
-        respuestas,
-        perfil: calculo.perfil,
-        madurez: calculo.madurez,
-        validacion: calculo.validacion,
-        viabilidad: calculo.viabilidad,
-        traccion: calculo.traccion,
-        potencial: calculo.potencial,
-        semaforo: calculo.semaforo,
-        fortaleza_principal: calculo.fortalezaPrincipal,
-        reto_principal: calculo.retoPrincipal,
-        ruta: calculo.ruta,
-        profesor_recomendado: calculo.profesorRecomendado,
-        objetivo_90_dias: calculo.objetivo90dias,
-      });
+      // 2) Usuario autenticado
+      const {
+        data: { user },
+        error: errorUsuario,
+      } = await supabase.auth.getUser();
+      if (errorUsuario || !user) throw new Error("SESION_EXPIRADA");
 
-      if (errorGuardar) {
-        // El resultado ya se muestra igual; solo avisamos que no quedó guardado.
-        setError("Tu resultado se calculó, pero no se pudo guardar en el sistema. Muéstraselo a tu mentor si es necesario.");
-      }
+      // 3) Inserción en `diagnosticos` (columnas fase_1_innovacion ... fase_6_liderazgo)
+      const { data: diagnostico, error: errorDiagnostico } = await supabase
+        .from("diagnosticos")
+        .insert({
+          user_id: user.id,
+          nombre_emprendimiento: datos.nombre_emprendimiento.trim(),
+          lider: datos.lider.trim(),
+          sector: datos.sector.trim(),
+          programa: datos.programa.trim(),
+          ...promedios,
+          brechas_prioritarias: brechas,
+        })
+        .select("id")
+        .single();
+
+      if (errorDiagnostico) throw errorDiagnostico;
+      diagnosticoId = diagnostico.id;
+
+      // 4) Los 4 registros de `talleres_proceso` (Mes 1 al 4)
+      const { error: errorTalleres } = await supabase
+        .from("talleres_proceso")
+        .insert(armarTalleres(brechas, diagnosticoId, user.id));
+
+      if (errorTalleres) throw errorTalleres;
+
+      // 5) Listo: el estudiante pasa a ver su proceso
+      router.push("/mi-proceso");
+      router.refresh();
     } catch (e) {
-      setError("Ocurrió un problema calculando tu diagnóstico. Inténtalo de nuevo.");
-    } finally {
+      console.error("Error guardando el diagnóstico:", e);
+
+      // Si el diagnóstico quedó guardado pero los talleres no, se intenta deshacer
+      // para que el estudiante pueda volver a enviar sin quedar a medias.
+      if (diagnosticoId) {
+        await supabase.from("diagnosticos").delete().eq("id", diagnosticoId);
+      }
+
+      setError(
+        e?.message === "SESION_EXPIRADA"
+          ? "Tu sesión expiró. Inicia sesión de nuevo para guardar tu diagnóstico."
+          : "No pudimos guardar tu diagnóstico. Revisa tu conexión e inténtalo de nuevo."
+      );
       setEnviando(false);
     }
   };
 
-  const esUltimoPaso = pasoActual === totalPasos - 1;
-
-  if (resultado) {
-    return <PantallaResultado resultado={resultado} error={error} />;
-  }
 
   return (
-    <div className="min-h-screen bg-stone-50 text-[#020201] font-inter">
-      <header className="bg-white border-b border-stone-200 px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-stone-50 font-inter text-[#020201]">
+      <header className="flex items-center justify-between border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
         <Link href="/" className="font-montserrat font-bold text-[#020201]">
           ← IMPULSA LAB
         </Link>
         <span className="text-xs text-stone-400">
-          Paso {pasoActual + 1} de {totalPasos}
+          Paso {paso + 1} de {TOTAL_PASOS}
         </span>
       </header>
 
-      <div className="w-full h-2 bg-stone-200">
+      {/* Barra de avance: sin porcentajes ni nombres de fases */}
+      <div
+        className="h-2 w-full bg-stone-200"
+        role="progressbar"
+        aria-label="Avance del formulario"
+        aria-valuemin={0}
+        aria-valuemax={TOTAL_PREGUNTAS}
+        aria-valuenow={respondidas}
+      >
         <div
           className="h-2 bg-[#FCC21B] transition-all duration-300"
-          style={{ width: `${progreso}%` }}
+          style={{ width: `${(respondidas / TOTAL_PREGUNTAS) * 100}%` }}
         />
       </div>
 
-      <main className="max-w-2xl mx-auto px-6 py-10">
-        <h1 className="text-2xl md:text-3xl font-extrabold font-montserrat text-[#020201] mb-2 text-center">
+      <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
+        <h1 className="mb-2 text-center font-montserrat text-2xl font-extrabold text-[#020201] md:text-3xl">
           ¿Qué clase de emprendedor soy?
         </h1>
-        <p className="text-stone-600 text-sm text-center mb-8">
-          Este diagnóstico no busca calificarte. Busca entender en qué etapa
-          está tu emprendimiento y cuál es tu siguiente paso.
+        <p className="mb-8 text-center text-sm text-stone-600">
+          Responde con total sinceridad. No hay respuestas buenas ni malas: este diagnóstico nos ayuda a
+          acompañarte en lo que más necesitas.
         </p>
 
-        <h2 className="font-montserrat font-bold text-lg text-[#003893] mb-4">
-          {bloque.titulo}
-        </h2>
+        {paso === 0 ? (
+          <section className="space-y-5">
+            <h2 className="font-montserrat text-lg font-bold text-[#003893]">Cuéntanos sobre tu emprendimiento</h2>
 
-        <div className="space-y-8">
-          {bloque.preguntas.map((p) => (
-            <PreguntaCampo
-              key={p.id}
-              pregunta={p}
-              valor={respuestas[p.id]}
-              onCambiar={(v) => actualizarRespuesta(p.id, v)}
-              onAlternarMulti={(opcion) => alternarMulti(p.id, opcion, p.max)}
-            />
-          ))}
-        </div>
+            <div>
+              <label htmlFor="nombre_emprendimiento" className="mb-2 block text-sm font-medium text-stone-700">
+                Nombre del emprendimiento
+              </label>
+              <input
+                id="nombre_emprendimiento"
+                type="text"
+                value={datos.nombre_emprendimiento}
+                onChange={(e) => actualizarDato("nombre_emprendimiento", e.target.value)}
+                className={CAMPO}
+                autoComplete="off"
+              />
+            </div>
 
-        {error && !resultado && <p className="text-sm text-[#CE1126] mt-6">{error}</p>}
+            <div>
+              <label htmlFor="lider" className="mb-2 block text-sm font-medium text-stone-700">
+                Líder del emprendimiento
+              </label>
+              <input
+                id="lider"
+                type="text"
+                value={datos.lider}
+                onChange={(e) => actualizarDato("lider", e.target.value)}
+                className={CAMPO}
+                autoComplete="name"
+              />
+            </div>
 
-        <div className="flex items-center justify-between mt-10">
+            <div>
+              <label htmlFor="sector" className="mb-2 block text-sm font-medium text-stone-700">
+                Sector
+              </label>
+              <select
+                id="sector"
+                value={datos.sector}
+                onChange={(e) => actualizarDato("sector", e.target.value)}
+                className={CAMPO}
+              >
+                <option value="">Selecciona un sector</option>
+                {SECTORES.map((sector) => (
+                  <option key={sector} value={sector}>
+                    {sector}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="programa" className="mb-2 block text-sm font-medium text-stone-700">
+                Programa académico
+              </label>
+              <input
+                id="programa"
+                type="text"
+                value={datos.programa}
+                onChange={(e) => actualizarDato("programa", e.target.value)}
+                className={CAMPO}
+                placeholder="Ej.: Administración de Empresas"
+                autoComplete="off"
+              />
+            </div>
+          </section>
+        ) : (
+          <section className="space-y-8">
+            <p className="text-sm font-medium text-stone-500">
+              Has respondido {respondidas} de {TOTAL_PREGUNTAS} preguntas
+            </p>
+
+            {preguntasDelPaso.map((pregunta) => (
+              <fieldset key={pregunta.id} className="space-y-3">
+                <legend className="flex items-start gap-3 text-sm font-semibold text-stone-800 sm:text-base">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FCC21B] text-xs font-extrabold text-[#020201]">
+                    {pregunta.numero}
+                  </span>
+                  <span>{pregunta.texto}</span>
+                </legend>
+
+                <div className="grid grid-cols-1 gap-2 pl-0 sm:pl-10">
+                  {pregunta.opciones.map((opcion, indice) => {
+                    const seleccionada = respuestas[pregunta.id] === opcion.puntaje;
+                    return (
+                      <label
+                        key={opcion.texto}
+                        className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 text-sm transition ${
+                          seleccionada
+                            ? "border-[#003893] bg-[#003893]/5"
+                            : "border-stone-200 bg-white hover:border-stone-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={pregunta.id}
+                          value={indice}
+                          checked={seleccionada}
+                          onChange={() => elegirRespuesta(pregunta.id, opcion.puntaje)}
+                          className="mt-0.5 accent-[#003893]"
+                        />
+                        <span>{opcion.texto}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            ))}
+          </section>
+        )}
+
+        {error && (
+          <p role="alert" className="mt-6 text-sm text-[#CE1126]">
+            {error}
+          </p>
+        )}
+
+        <div className="mt-10 flex items-center justify-between">
           <button
             type="button"
             onClick={anterior}
-            disabled={pasoActual === 0}
-            className="rounded-xl px-4 py-3 text-stone-500 font-medium transition hover:text-[#020201] disabled:opacity-0"
+            disabled={paso === 0 || enviando}
+            className="rounded-xl px-4 py-3 font-medium text-stone-500 transition hover:text-[#020201] disabled:opacity-0"
           >
             ← Anterior
           </button>
@@ -146,7 +309,7 @@ export default function DiagnosticoForm({ usuario }) {
             <button
               type="button"
               onClick={siguiente}
-              className="rounded-xl bg-[#003893] px-6 py-3 text-white font-semibold font-montserrat tracking-wide transition hover:bg-[#003893]/90"
+              className="rounded-xl bg-[#003893] px-6 py-3 font-montserrat font-semibold tracking-wide text-white transition hover:bg-[#003893]/90"
             >
               Siguiente →
             </button>
@@ -155,9 +318,9 @@ export default function DiagnosticoForm({ usuario }) {
               type="button"
               onClick={enviar}
               disabled={enviando}
-              className="rounded-xl bg-[#FCC21B] px-6 py-3 text-[#020201] font-semibold font-montserrat tracking-wide transition hover:bg-[#FCC21B]/90 disabled:opacity-60"
+              className="rounded-xl bg-[#FCC21B] px-6 py-3 font-montserrat font-semibold tracking-wide text-[#020201] transition hover:bg-[#FCC21B]/90 disabled:opacity-60"
             >
-              {enviando ? "Calculando..." : "Ver mi diagnóstico"}
+              {enviando ? "Guardando..." : "Enviar y ver mi proceso"}
             </button>
           )}
         </div>
@@ -166,207 +329,4 @@ export default function DiagnosticoForm({ usuario }) {
   );
 }
 
-function PreguntaCampo({ pregunta, valor, onCambiar, onAlternarMulti }) {
-  if (pregunta.tipo === "texto") {
-    return (
-      <div>
-        <label className="block text-sm font-medium text-stone-700 mb-2">{pregunta.texto}</label>
-        <textarea
-          value={valor ?? ""}
-          onChange={(e) => onCambiar(e.target.value)}
-          rows={3}
-          className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003893]"
-        />
-      </div>
-    );
-  }
 
-  if (pregunta.tipo === "escala") {
-    return (
-      <div>
-        <label className="block text-sm font-medium text-stone-700 mb-2">{pregunta.texto}</label>
-        <div className="flex items-center gap-3">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <button
-              key={n}
-              type="button"
-              onClick={() => onCambiar(n)}
-              className={`w-10 h-10 rounded-full border-2 font-semibold transition ${
-                Number(valor) === n
-                  ? "bg-[#003893] border-[#003893] text-white"
-                  : "border-stone-300 text-stone-500 hover:border-[#003893]"
-              }`}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (pregunta.tipo === "multi") {
-    const seleccion = valor ?? [];
-    return (
-      <div>
-        <label className="block text-sm font-medium text-stone-700 mb-2">{pregunta.texto}</label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {pregunta.opciones.map((op) => (
-            <label
-              key={op}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition ${
-                seleccion.includes(op)
-                  ? "border-[#003893] bg-[#003893]/5"
-                  : "border-stone-200 hover:border-stone-300"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={seleccion.includes(op)}
-                onChange={() => onAlternarMulti(op)}
-                className="accent-[#003893]"
-              />
-              {op}
-            </label>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // single
-  return (
-    <div>
-      <label className="block text-sm font-medium text-stone-700 mb-2">{pregunta.texto}</label>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {pregunta.opciones.map((op) => (
-          <label
-            key={op}
-            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition ${
-              valor === op ? "border-[#003893] bg-[#003893]/5" : "border-stone-200 hover:border-stone-300"
-            }`}
-          >
-            <input
-              type="radio"
-              checked={valor === op}
-              onChange={() => onCambiar(op)}
-              className="accent-[#003893]"
-            />
-            {op}
-          </label>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function PantallaResultado({ resultado, error }) {
-  const dimensionesOrden = [
-    ["idea", "💡 Idea y oportunidad"],
-    ["problema", "🎯 Problema"],
-    ["cliente", "👤 Cliente"],
-    ["validacion", "🧪 Validación"],
-    ["modelo", "💰 Modelo de negocio"],
-    ["ventas", "🛒 Ventas y tracción"],
-    ["ejecucion", "⚙️ Capacidad de ejecución"],
-    ["potencial", "🚀 Potencial de crecimiento"],
-  ];
-
-  return (
-    <div className="min-h-screen bg-stone-50 text-[#020201] font-inter">
-      <header className="bg-white border-b border-stone-200 px-6 py-4">
-        <Link href="/" className="font-montserrat font-bold text-[#020201]">
-          ← IMPULSA LAB
-        </Link>
-      </header>
-
-      <main className="max-w-2xl mx-auto px-6 py-10 space-y-8">
-        <div className="text-center space-y-2">
-          <p className="text-sm uppercase tracking-widest text-[#003893] font-bold">Tu mapa emprendedor</p>
-          <h1 className="text-3xl font-extrabold font-montserrat">{resultado.perfil}</h1>
-          {resultado.contradiccion && (
-            <p className="text-xs text-[#CE1126] max-w-md mx-auto">
-              Notamos que tu percepción de la etapa va más adelantada que la evidencia real
-              (validación y tracción todavía bajas). Este diagnóstico se basa en la evidencia.
-            </p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <Indicador etiqueta="Madurez" valor={resultado.madurez} />
-          <Indicador etiqueta="Validación" valor={resultado.validacion} />
-          <Indicador etiqueta="Viabilidad" valor={resultado.viabilidad} />
-          <Indicador etiqueta="Tracción" valor={resultado.traccion} />
-          <Indicador etiqueta="Potencial" valor={resultado.potencial} />
-          <Indicador etiqueta="Ejecución" valor={resultado.capacidadEjecucion} />
-        </div>
-
-        <div className="bg-white rounded-2xl border border-stone-200 p-5 space-y-3">
-          <h2 className="font-montserrat font-bold text-base">🚦 Mi semáforo emprendedor</h2>
-          <div className="space-y-2">
-            {dimensionesOrden.map(([clave, etiqueta]) => {
-              const dato = resultado.semaforo[clave];
-              const color = COLORES_SEMAFORO[dato.estado];
-              return (
-                <div
-                  key={clave}
-                  className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm ${color.fondo} ${color.borde}`}
-                >
-                  <span>{etiqueta}</span>
-                  <span className={`font-semibold ${color.texto}`}>{color.emoji}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white rounded-2xl border border-stone-200 p-5">
-            <h3 className="font-montserrat font-bold text-sm text-[#003893] mb-1">Tu principal fortaleza</h3>
-            <p className="text-sm text-stone-600">{resultado.fortalezaPrincipal}</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-stone-200 p-5">
-            <h3 className="font-montserrat font-bold text-sm text-[#CE1126] mb-1">Tu principal desafío</h3>
-            <p className="text-sm text-stone-600">{resultado.retoPrincipal}</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <h3 className="font-montserrat font-bold text-sm mb-2">Ruta recomendada</h3>
-          <ol className="list-decimal list-inside text-sm text-stone-600 space-y-1">
-            {resultado.ruta.map((paso) => (
-              <li key={paso}>{paso}</li>
-            ))}
-          </ol>
-        </div>
-
-        <div className="bg-[#FCC21B]/10 border-2 border-[#FCC21B] rounded-2xl p-5 space-y-2">
-          <h3 className="font-montserrat font-bold text-sm">Acompañamiento recomendado</h3>
-          <p className="text-sm text-stone-700">{resultado.profesorRecomendado}</p>
-          <h3 className="font-montserrat font-bold text-sm pt-2">Tu meta de 90 días</h3>
-          <p className="text-sm text-stone-700">{resultado.objetivo90dias}</p>
-        </div>
-
-        {error && <p className="text-sm text-[#CE1126] text-center">{error}</p>}
-
-        <div className="text-center pt-4">
-          <Link
-            href="/"
-            className="inline-block rounded-xl bg-[#003893] px-6 py-3 text-white font-semibold font-montserrat tracking-wide transition hover:bg-[#003893]/90"
-          >
-            Volver al inicio
-          </Link>
-        </div>
-      </main>
-    </div>
-  );
-}
-
-function Indicador({ etiqueta, valor }) {
-  return (
-    <div className="bg-white rounded-xl border border-stone-200 p-3 text-center">
-      <p className="text-2xl font-extrabold font-montserrat text-[#003893]">{valor}</p>
-      <p className="text-xs text-stone-500">{etiqueta}/100</p>
-    </div>
-  );
-}

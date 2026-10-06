@@ -28,9 +28,7 @@ const MENU_SUPERIOR = [
     id: "mi-proceso",
     label: "Mi proceso",
     requiereSesion: true,
-    enlaces: [
-      { titulo: "Próximamente", descripcion: "Aquí podrás ver el avance de tu proceso" },
-    ],
+    href: "/mi-proceso",
   },
   {
     id: "tienda-digital",
