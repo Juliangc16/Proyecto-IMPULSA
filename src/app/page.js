@@ -39,9 +39,64 @@ const MENU_SUPERIOR = [
   },
 ];
 
+// Video de intro: intenta sonar; si el navegador lo bloquea, arranca en silencio y muestra un botón
+function IntroVideo({ onPlay, onEnded, onError }) {
+  const videoRef = useRef(null);
+  const [sinSonido, setSinSonido] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = false;
+    video.play().catch(() => {
+      video.muted = true;
+      setSinSonido(true);
+      video.play().catch(() => onError());
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const activarSonido = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = false;
+    setSinSonido(false);
+  };
+
+  return (
+    <div className="fixed inset-0 w-full h-dvh bg-black z-50 flex items-center justify-center">
+      <video
+        ref={videoRef}
+        src="/videos/ave.mp4"
+        className="w-full h-full object-cover"
+        playsInline
+        preload="auto"
+        onPlay={onPlay}
+        onEnded={onEnded}
+        onError={onError}
+      />
+      {sinSonido && (
+        <button
+          type="button"
+          onClick={activarSonido}
+          className="absolute bottom-6 right-6 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#020201] shadow-lg transition hover:bg-white"
+        >
+          🔊 Activar sonido
+        </button>
+      )}
+    </div>
+  );
+}
+
+// Vive mientras la pestaña no se recargue: evita repetir el video al volver al inicio sin recargar
+let introReproducida = false;
+
 export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  // null = decidiendo | "video" = intro del ave (solo al abrir/recargar) | "frases" = navegación interna
+  const [modoIntro, setModoIntro] = useState(null);
   const [frase, setFrase] = useState({ texto: "", autor: "" });
   const [usuario, setUsuario] = useState(null);
   const [cargandoSesion, setCargandoSesion] = useState(true);
@@ -114,9 +169,31 @@ export default function Home() {
     const fraseAleatoria = frasesMotivadoras[Math.floor(Math.random() * frasesMotivadoras.length)];
     setFrase(fraseAleatoria);
 
+    // El video del ave se ve solo al abrir la página (pestaña nueva) o al recargar el inicio.
+    // Si el usuario vuelve al inicio desde otra página, se muestran las frases.
+    let yaVioVideo = false;
+    let esRecarga = false;
+    try {
+      yaVioVideo = sessionStorage.getItem("impulsa_video_visto") === "1";
+      const nav = performance.getEntriesByType("navigation")[0];
+      esRecarga = nav?.type === "reload";
+    } catch {}
+
+    if (introReproducida) {
+      setModoIntro("frases");
+    } else if (!yaVioVideo || esRecarga) {
+      setModoIntro("video");
+    } else {
+      setModoIntro("frases");
+    }
+  }, []);
+
+  // Las frases se muestran 3 segundos y luego entra a la página
+  useEffect(() => {
+    if (modoIntro !== "frases") return;
     const timer = setTimeout(() => setLoading(false), 3000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [modoIntro]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -173,6 +250,23 @@ export default function Home() {
       window.location.replace("https://google.com");
     }
     return null;
+  }
+
+  if (loading && modoIntro === null) {
+    return <div className="fixed inset-0 w-full h-dvh bg-white z-50" aria-hidden="true" />;
+  }
+
+  if (loading && modoIntro === "video") {
+    return (
+      <IntroVideo
+        onPlay={() => {
+          introReproducida = true;
+          try { sessionStorage.setItem("impulsa_video_visto", "1"); } catch {}
+        }}
+        onEnded={() => setLoading(false)}
+        onError={() => setModoIntro("frases")}
+      />
+    );
   }
 
   if (loading) {
